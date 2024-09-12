@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package user;
+import "api.proto";
+message UserRegisterReq{
+    string nickname = 1;
+	  string username = 2;
+	  string password = 3;
+    string captchaID = 4;
+    string captcha = 5;
+    string email = 6;
+}
+
+enum ErrCode {
+  Success = 0;
+  Fail = 1;
+}
+message BaseResp {
+  ErrCode errCode = 1;
+  string errMsg = 2;
+}
+
+service user{
+  rpc Register(UserRegisterReq) returns (BaseResp) {
+    option (api.post) = "/api/register";
+  }
+}

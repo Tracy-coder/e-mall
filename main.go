@@ -3,10 +3,12 @@
 package main
 
 import (
+	"github.com/Tracy-coder/e-mall/data"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
 func main() {
+	data.Init()
 	h := server.Default()
 
 	register(h)
