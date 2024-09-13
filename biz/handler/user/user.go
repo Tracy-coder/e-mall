@@ -28,8 +28,15 @@ func Register(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
+	valid := logic.CaptchaStore.Verify(req.CaptchaID, req.Captcha, true)
+	if !valid {
+		resp.ErrCode = pb.ErrCode_CaptchaMismatchError
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
 	var userRegisterReq domain.UserRegisterReq
 	_ = copier.Copy(&userRegisterReq, &req)
+
 	err = logic.NewUser(data.Default()).Register(ctx, userRegisterReq)
 	if err != nil {
 		resp.ErrCode = pb.ErrCode_CreateUserError

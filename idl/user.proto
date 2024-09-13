@@ -17,6 +17,7 @@ enum ErrCode {
   ArgumentError = 1;
   CaptchaError = 2;
   CreateUserError = 3;
+  CaptchaMismatchError = 4;
 }
 
 message BaseResp {
