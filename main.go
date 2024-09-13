@@ -3,13 +3,18 @@
 package main
 
 import (
+	"fmt"
+
+	"github.com/Tracy-coder/e-mall/configs"
 	"github.com/Tracy-coder/e-mall/data"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
 func main() {
 	data.Init()
-	h := server.Default()
+	c := configs.Data()
+	h := server.Default(
+		server.WithHostPorts(fmt.Sprintf("%s:%d", c.Host, c.Port)))
 
 	register(h)
 	h.Spin()

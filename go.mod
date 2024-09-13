@@ -7,7 +7,9 @@ require (
 	github.com/cloudwego/hertz v0.9.3
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang/protobuf v1.5.4
+	github.com/jinzhu/configor v1.2.2
 	github.com/jinzhu/copier v0.4.0
+	github.com/mojocn/base64Captcha v1.3.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167
@@ -17,6 +19,7 @@ require (
 require (
 	ariga.io/atlas v0.19.1-0.20240203083654-5948b60a8e43 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/BurntSushi/toml v1.2.0 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/bytedance/go-tagexpr/v2 v2.9.2 // indirect
@@ -28,6 +31,7 @@ require (
 	github.com/cloudwego/netpoll v0.6.2 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.13.0 // indirect
@@ -42,7 +46,9 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
+	golang.org/x/image v0.0.0-20190501045829-6d32002ffd75 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

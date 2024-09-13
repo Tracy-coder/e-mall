@@ -23,7 +23,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	var req pb.UserRegisterReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_Fail
+		resp.ErrCode = pb.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
@@ -32,12 +32,40 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	_ = copier.Copy(&userRegisterReq, &req)
 	err = logic.NewUser(data.Default()).Register(ctx, userRegisterReq)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_Fail
+		resp.ErrCode = pb.ErrCode_CreateUserError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
 	resp.ErrCode = pb.ErrCode_Success
 	resp.ErrMsg = "success"
+	c.JSON(consts.StatusOK, resp)
+}
+
+// Captcha .
+// @router /api/captcha [GET]
+func Captcha(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req user.Empty
+	resp := new(user.CaptchaInfoResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	id, b64s, err := logic.NewCaptcha().GetCaptcha()
+	if err != nil {
+		resp.ErrCode = pb.ErrCode_CaptchaError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrMsg = "success"
+	resp.CaptchaID = id
+	resp.ImgPath = b64s
+
 	c.JSON(consts.StatusOK, resp)
 }

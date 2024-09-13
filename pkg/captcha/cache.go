@@ -28,9 +28,8 @@ type CacheStore struct {
 	Cache      *cache.Cache
 }
 
-func (c *CacheStore) Set(id string, value string) error {
+func (c *CacheStore) Set(id string, value string) {
 	c.Cache.Set(c.PreKey+id, value, c.Expiration)
-	return nil
 }
 
 func (c *CacheStore) Get(key string, clear bool) string {

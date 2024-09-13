@@ -7,9 +7,10 @@
 package captcha
 
 import (
-	"github.com/patrickmn/go-cache"
 	"testing"
 	"time"
+
+	"github.com/patrickmn/go-cache"
 )
 
 func TestCacheStore_Get(t *testing.T) {
@@ -98,8 +99,9 @@ func TestCacheStore_Set(t *testing.T) {
 				PreKey:     tt.fields.PreKey,
 				Cache:      tt.fields.Cache,
 			}
-			if err := c.Set(tt.args.id, tt.args.value); (err != nil) != tt.wantErr {
-				t.Errorf("Set() error = %v, wantErr %v", err, tt.wantErr)
+			c.Set(tt.args.id, tt.args.value)
+			if got := c.Get(c.PreKey+tt.args.id, true); got != tt.args.value {
+				t.Errorf("After set key, Get() = %v, want %v", got, tt.args.value)
 			}
 		})
 	}

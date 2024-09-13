@@ -10,3 +10,10 @@ services:
       - MYSQL_USER=mall
       - MYSQL_PASSWORD=password
       - MYSQL_RANDOM_ROOT_PASSWORD="no"
+  redis:
+    image: redis
+    ports:
+      - 6379:6379 
+    # volumes:
+    #   - /home/docker/redis6/conf/redis.conf:/etc/redis/redis.conf 
+    #   - /home/docker/redis6/data:/data 

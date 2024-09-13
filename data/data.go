@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect/sql/schema"
 
 	"entgo.io/ent/dialect"
+	"github.com/Tracy-coder/e-mall/configs"
 	"github.com/Tracy-coder/e-mall/data/ent"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	_ "github.com/go-sql-driver/mysql"
@@ -21,7 +22,7 @@ const (
 
 func initData() {
 	var err error
-	data, err = NewData()
+	data, err = NewData(configs.Data())
 	if err != nil {
 		hlog.Fatal(err)
 	}
@@ -38,21 +39,28 @@ type Data struct {
 }
 
 // NewData .
-func NewData() (data *Data, err error) {
+func NewData(config configs.Config) (data *Data, err error) {
 	data = new(Data)
+	db, err := NewSqlClient(config)
+	if err != nil {
+		return nil, err
+	}
+	data.DBClient = db
+	return data, nil
+}
+
+func NewSqlClient(config configs.Config) (client *ent.Client, err error) {
 	drv, err := sql.Open("mysql", fmt.Sprintf(mySqlDsn,
-		"mall", "password", "127.0.0.1", 3306, "e-mall"))
+		config.Database.Username, config.Database.Password, config.Database.Host, config.Database.Port, config.Database.DBName))
 	if err != nil {
 		return nil, err
 	}
 	var drive dialect.Driver = drv
-	client := ent.NewClient(ent.Driver(drive))
+	client = ent.NewClient(ent.Driver(drive))
 
 	if err := client.Schema.Create(context.Background(), schema.WithForeignKeys(false)); err != nil {
 		hlog.Fatalf("failed creating schema resources: %v", err)
 		return nil, err
 	}
-
-	data.DBClient = client
-	return data, nil
+	return client, nil
 }
