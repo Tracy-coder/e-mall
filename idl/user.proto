@@ -12,6 +12,20 @@ message UserRegisterReq{
     string email = 6;
 }
 
+message UserLoginReq{
+  string username = 1;
+  string password = 3;
+  string captchaID = 4;
+  string captcha = 5;
+}
+
+message UserLoginResp {
+  string code = 1;
+  string token = 2;
+  string expire = 3;
+}
+
+
 enum ErrCode {
   Success = 0;
   ArgumentError = 1;
@@ -40,5 +54,11 @@ service user{
   }
   rpc Captcha(Empty) returns (CaptchaInfoResp){
     option (api.get) = "/api/captcha";
+  }
+  // rpc Login(UserLoginReq) returns (UserLoginResp){
+  //   option (api.post) = "/api/login";
+  // }
+  rpc UserInfo(Empty) returns (Empty){
+    option (api.post) = "/api/user/info";
   }
 }

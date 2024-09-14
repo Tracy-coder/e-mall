@@ -3,6 +3,9 @@
 package user
 
 import (
+	"github.com/Tracy-coder/e-mall/biz/handler/middleware"
+	"github.com/Tracy-coder/e-mall/configs"
+	"github.com/Tracy-coder/e-mall/data"
 	"github.com/cloudwego/hertz/pkg/app"
 )
 
@@ -22,6 +25,22 @@ func _registerMw() []app.HandlerFunc {
 }
 
 func _captchaMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _loginMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _userMw() []app.HandlerFunc {
+	// your code...
+	return []app.HandlerFunc{middleware.GetJWTMiddleware(configs.Data(), data.Default()).MiddlewareFunc()}
+	return nil
+}
+
+func _userinfoMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }

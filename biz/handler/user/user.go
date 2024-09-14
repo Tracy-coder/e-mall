@@ -76,3 +76,19 @@ func Captcha(ctx context.Context, c *app.RequestContext) {
 
 	c.JSON(consts.StatusOK, resp)
 }
+
+// UserInfo .
+// @router /api/user/info [POST]
+func UserInfo(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req user.Empty
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
+
+	resp := new(user.Empty)
+
+	c.JSON(consts.StatusOK, resp)
+}

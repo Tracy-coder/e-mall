@@ -1,10 +1,4 @@
-/*
- * Copyright 2023 FormulaGo Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- */
-
-// package encrypt provide general encryption and decryption related methods
+// from: https://github.com/chenghonour/formulago
 
 package encrypt
 

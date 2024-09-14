@@ -5,6 +5,7 @@ import (
 
 	"github.com/Tracy-coder/e-mall/biz/domain"
 	"github.com/Tracy-coder/e-mall/data"
+	"github.com/Tracy-coder/e-mall/data/ent/user"
 	"github.com/Tracy-coder/e-mall/pkg/encrypt"
 	"github.com/pkg/errors"
 )
@@ -33,4 +34,20 @@ func (u *User) Register(ctx context.Context, req domain.UserRegisterReq) error {
 	}
 
 	return nil
+}
+
+func (u *User) Login(ctx context.Context, username string, password string) (res *domain.UserLoginResp, err error) {
+	user, err := u.Data.DBClient.User.Query().Where(user.Username(username), user.Status(1)).Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if ok := encrypt.BcryptCheck(password, user.Password); !ok {
+		err = errors.New("wrong password")
+		return nil, err
+	}
+	res = new(domain.UserLoginResp)
+	res.Username = username
+	res.UserID = user.ID
+
+	return
 }
