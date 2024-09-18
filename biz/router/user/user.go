@@ -22,8 +22,14 @@ func Register(r *server.Hertz) {
 		_api.GET("/captcha", append(_captchaMw(), user.Captcha)...)
 		_api.POST("/register", append(_registerMw(), user.Register)...)
 		{
+			_github := _api.Group("/github", _githubMw()...)
+			_github.GET("/login", append(_gtloginMw(), user.GTLogin)...)
+			_login := _github.Group("/login", _loginMw()...)
+			_login.GET("/callback", append(_gtlogincallbackMw(), user.GTLoginCallback)...)
+		}
+		{
 			_user := _api.Group("/user", _userMw()...)
-			_user.POST("/info", append(_userinfoMw(), user.UserInfo)...)
+			_user.GET("/info", append(_userinfoMw(), user.UserInfo)...)
 		}
 	}
 }

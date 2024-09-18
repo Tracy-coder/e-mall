@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -15,7 +16,14 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	// primary key
+	ID uint64 `json:"id,omitempty"`
+	// created time
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// last update time
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// status 1 normal 0 ban | 状态 1 正常 0 禁用
+	Status uint8 `json:"status,omitempty"`
 	// user's login name | 登录名
 	Username string `json:"username,omitempty"`
 	// password | 密码
@@ -24,10 +32,10 @@ type User struct {
 	Nickname string `json:"nickname,omitempty"`
 	// email | 邮箱号
 	Email string `json:"email,omitempty"`
-	// status 1 normal 0 ban | 状态 1 正常 0 禁用
-	Status uint8 `json:"status,omitempty"`
 	// avatar | 头像路径
-	Avatar       string `json:"avatar,omitempty"`
+	Avatar string `json:"avatar,omitempty"`
+	// github id | 关联的Github ID
+	GithubID     uint64 `json:"github_id,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -36,10 +44,12 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldStatus:
+		case user.FieldID, user.FieldStatus, user.FieldGithubID:
 			values[i] = new(sql.NullInt64)
 		case user.FieldUsername, user.FieldPassword, user.FieldNickname, user.FieldEmail, user.FieldAvatar:
 			values[i] = new(sql.NullString)
+		case user.FieldCreatedAt, user.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -60,7 +70,25 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			u.ID = int(value.Int64)
+			u.ID = uint64(value.Int64)
+		case user.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				u.CreatedAt = value.Time
+			}
+		case user.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				u.UpdatedAt = value.Time
+			}
+		case user.FieldStatus:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				u.Status = uint8(value.Int64)
+			}
 		case user.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
@@ -85,17 +113,17 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Email = value.String
 			}
-		case user.FieldStatus:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				u.Status = uint8(value.Int64)
-			}
 		case user.FieldAvatar:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field avatar", values[i])
 			} else if value.Valid {
 				u.Avatar = value.String
+			}
+		case user.FieldGithubID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field github_id", values[i])
+			} else if value.Valid {
+				u.GithubID = uint64(value.Int64)
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -133,6 +161,15 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", u.Status))
+	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(u.Username)
 	builder.WriteString(", ")
@@ -145,11 +182,11 @@ func (u *User) String() string {
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
 	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(fmt.Sprintf("%v", u.Status))
-	builder.WriteString(", ")
 	builder.WriteString("avatar=")
 	builder.WriteString(u.Avatar)
+	builder.WriteString(", ")
+	builder.WriteString("github_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.GithubID))
 	builder.WriteByte(')')
 	return builder.String()
 }

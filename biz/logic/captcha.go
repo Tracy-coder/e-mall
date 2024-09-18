@@ -13,7 +13,7 @@ var (
 	CaptchaStore  *captcha.CacheStore
 )
 
-func initCaptcha() {
+func init() {
 	c := configs.Data()
 	captchaDriver = base64Captcha.NewDriverDigit(c.Captcha.ImgHeight, c.Captcha.ImgWidth,
 		c.Captcha.KeyLong, 0.7, 80)
@@ -26,9 +26,9 @@ type Captcha struct {
 }
 
 func NewCaptcha() domain.Captcha {
-	if captchaDriver == nil || CaptchaStore == nil {
-		initCaptcha()
-	}
+	// if captchaDriver == nil || CaptchaStore == nil {
+	// 	initCaptcha()
+	// }
 	return &Captcha{
 		CaptchaDriver: captchaDriver,
 		CaptchaStore:  CaptchaStore,

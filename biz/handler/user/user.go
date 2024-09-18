@@ -4,11 +4,15 @@ package user
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/Tracy-coder/e-mall/biz/domain"
 	logic "github.com/Tracy-coder/e-mall/biz/logic"
 	"github.com/Tracy-coder/e-mall/biz/model/user"
 	pb "github.com/Tracy-coder/e-mall/biz/model/user"
+	"github.com/Tracy-coder/e-mall/configs"
 	"github.com/Tracy-coder/e-mall/data"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
@@ -28,12 +32,15 @@ func Register(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
-	valid := logic.CaptchaStore.Verify(req.CaptchaID, req.Captcha, true)
-	if !valid {
-		resp.ErrCode = pb.ErrCode_CaptchaMismatchError
-		c.JSON(consts.StatusBadRequest, resp)
-		return
+	if configs.Data().IsProd {
+		valid := logic.CaptchaStore.Verify(req.CaptchaID, req.Captcha, true)
+		if !valid {
+			resp.ErrCode = pb.ErrCode_CaptchaMismatchError
+			c.JSON(consts.StatusBadRequest, resp)
+			return
+		}
 	}
+
 	var userRegisterReq domain.UserRegisterReq
 	_ = copier.Copy(&userRegisterReq, &req)
 
@@ -82,13 +89,87 @@ func Captcha(ctx context.Context, c *app.RequestContext) {
 func UserInfo(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req user.Empty
+	resp := new(user.UserInfoResp)
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		c.String(consts.StatusBadRequest, err.Error())
+		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
+	v, exist := c.Get("userID")
+	if !exist || v == nil {
+		c.JSON(consts.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	i, err := strconv.Atoi(v.(string))
+	if err != nil {
+		c.JSON(consts.StatusUnauthorized, "Unauthorized,"+err.Error())
+		return
+	}
+	userID := uint64(i)
+	user, err := logic.NewUser(data.Default()).UserInfo(ctx, userID)
+	if err != nil {
+		resp.ErrCode = pb.ErrCode_GetUserInfoError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+	resp.ID = user.ID
+	resp.Username = user.Username
+	resp.Status = uint64(user.Status)
+	resp.Email = user.Email
+	resp.Mobile = user.Mobile
+	resp.Avatar = user.Avatar
+	resp.Nickname = user.Nickname
+	resp.CreatedAt = user.CreatedAt.Format("2006-01-02 15:04:05")
+	resp.UpdatedAt = user.UpdatedAt.Format("2006-01-02 15:04:05")
 
-	resp := new(user.Empty)
-
+	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
+
+}
+
+// GTLogin .
+// @router /api/GT/login [GET]
+func GTLogin(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req user.Empty
+	resp := new(pb.GTLoginResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+	url := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=http://localhost:8888/api/github/login/callback", os.Getenv("GITHUB_KEY"))
+	resp.ErrCode = pb.ErrCode_Success
+	resp.LoginURL = url
+	c.JSON(consts.StatusOK, resp)
+}
+
+// GTLoginCallback .
+// @router /api/github/login/callback [POST]
+func GTLoginCallback(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req user.GTLoginCallbackReq
+	resp := new(pb.BaseResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+	err = logic.NewUser(data.Default()).GTLoginCallback(ctx, req.Code)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(req.Code)
+
+	//TODO oauth登录后如果该github账户还没有关联任何用户，就新建一个?
+
+	// 如何颁发token
 }

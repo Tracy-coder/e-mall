@@ -44,3 +44,33 @@ func _userinfoMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _qqMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _qqloginMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _gtMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _gtloginMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _githubMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _gtlogincallbackMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
