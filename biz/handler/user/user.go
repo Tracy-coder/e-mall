@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/Tracy-coder/e-mall/biz/domain"
+	"github.com/Tracy-coder/e-mall/biz/handler/middleware"
 	logic "github.com/Tracy-coder/e-mall/biz/logic"
 	"github.com/Tracy-coder/e-mall/biz/model/user"
 	pb "github.com/Tracy-coder/e-mall/biz/model/user"
@@ -163,13 +164,14 @@ func GTLoginCallback(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusInternalServerError, resp)
 		return
 	}
-	err = logic.NewUser(data.Default()).GTLoginCallback(ctx, req.Code)
+	userInfo, err := logic.NewUser(data.Default()).GTLoginCallback(ctx, req.Code)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(req.Code)
 
-	//TODO oauth登录后如果该github账户还没有关联任何用户，就新建一个?
+	c.Set("userInfo", *userInfo)
+	fmt.Println(userInfo)
 
-	// 如何颁发token
+	ctx = context.WithValue(ctx, "OAuth", 1)
+	middleware.GetJWTMiddleware(configs.Data(), data.Default()).LoginHandler(ctx, c)
 }

@@ -1,15 +1,10 @@
-/*
- * Copyright 2023 FormulaGo Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- */
-
-// package middleware provides the middleware for the service http handler.
+// from: https://github.com/chenghonour/formulago
 
 package middleware
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -68,41 +63,56 @@ func newJWT(config configs.Config, db *Data.Data) (jwtMiddleware *jwt.HertzJWTMi
 				hlog.Error("get payloadMap error", "claims data:", claims[identityKey])
 				return nil
 			}
-			// take roleID, userID from PayloadMap
-			c.Set("roleID", payloadMap["roleID"])
 			c.Set("userID", payloadMap["userID"])
 			// ID是为了给Authorizator用
 			return payloadMap
 		},
 		Authenticator: func(ctx context.Context, c *app.RequestContext) (interface{}, error) {
-			res := new(domain.UserLoginResp)
-			// normal jwtLogin
-			var loginVal jwtLogin
-			if err := c.BindAndValidate(&loginVal); err != nil {
-				return "", err
-			}
-			// verify captcha while IsProd is true
-			// 开发模式不做检查
-			if config.IsProd {
-				valid := logic.CaptchaStore.Verify(loginVal.CaptchaID, loginVal.Captcha, true)
-				if !valid {
-					return nil, errors.New("invalid captcha")
+			oauthLogin := ctx.Value("OAuth") == 1
+			if !oauthLogin {
+				res := new(domain.UserLoginResp)
+				// normal jwtLogin
+				var loginVal jwtLogin
+				if err := c.BindAndValidate(&loginVal); err != nil {
+					return "", err
 				}
-			}
-			// Login
-			username := loginVal.Username
-			password := loginVal.Password
-			res, err = logic.NewUser(db).Login(ctx, username, password)
-			if err != nil {
-				hlog.Error(err, "jwtLogin error")
-				return nil, err
+				// verify captcha while IsProd is true
+				// 开发模式不做检查
+				if config.IsProd {
+					valid := logic.CaptchaStore.Verify(loginVal.CaptchaID, loginVal.Captcha, true)
+					if !valid {
+						return nil, errors.New("invalid captcha")
+					}
+				}
+				// Login
+				username := loginVal.Username
+				password := loginVal.Password
+				res, err = logic.NewUser(db).Login(ctx, username, password)
+				if err != nil {
+					hlog.Error(err, "jwtLogin error")
+					return nil, err
+				}
+				// return the payload
+				// take str roleID, userID into PayloadMap
+				payloadMap := make(map[string]interface{})
+				payloadMap["userID"] = strconv.Itoa(int(res.UserID))
+				return payloadMap, nil
+			} else {
+				fmt.Println("OAuth login")
+				userInfo, ok := c.Value("userInfo").(domain.OauthUserInfo)
+				fmt.Println(userInfo)
+				if !ok {
+					return nil, errors.New("get ctx value failed")
+				}
+				res, err := logic.NewUser(db).OAuthLogin(ctx, userInfo.ID)
+				if err != nil {
+					return nil, err
+				}
+				payloadMap := make(map[string]interface{})
+				payloadMap["userID"] = strconv.Itoa(int(res.UserID))
+				return payloadMap, nil
 			}
 
-			// return the payload
-			// take str roleID, userID into PayloadMap
-			payloadMap := make(map[string]interface{})
-			payloadMap["userID"] = strconv.Itoa(int(res.UserID))
-			return payloadMap, nil
 		},
 		Unauthorized: func(ctx context.Context, c *app.RequestContext, code int, message string) {
 			c.JSON(code, map[string]interface{}{

@@ -72,7 +72,7 @@ func (u *User) UserInfo(ctx context.Context, id uint64) (userInfo domain.UserInf
 	return
 }
 
-func (u *User) GTLoginCallback(ctx context.Context, code string) error {
+func (u *User) GTLoginCallback(ctx context.Context, code string) (*domain.OauthUserInfo, error) {
 	config := oauth2.Config{
 		ClientID:     os.Getenv("GITHUB_KEY"),
 		ClientSecret: os.Getenv("GITHUB_SECRET"),
@@ -84,30 +84,30 @@ func (u *User) GTLoginCallback(ctx context.Context, code string) error {
 	}
 	token, err := config.Exchange(context.Background(), code)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fmt.Println(token)
 	var response *http.Response
 	request, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Authorization", "Bearer "+token.AccessToken)
 	client := &http.Client{}
 	response, err = client.Do(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer response.Body.Close()
 	contents, err := io.ReadAll(response.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var userInfo *domain.OauthUserInfo
 	err = json.Unmarshal(contents, &userInfo)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	userDB, err := u.Data.DBClient.User.Query().Where(user.GithubID(userInfo.ID), user.Status(1)).First(ctx)
 	if err != nil {
@@ -123,11 +123,11 @@ func (u *User) GTLoginCallback(ctx context.Context, code string) error {
 			SetGithubID(userInfo.ID).
 			Save(ctx)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	fmt.Println(userDB)
-	return nil
+	return userInfo, nil
 }
 
 func generateRandomName(name string) (newName string) {
@@ -138,4 +138,17 @@ func generateRandomName(name string) (newName string) {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return name + "_" + string(b)
+}
+
+func (u *User) OAuthLogin(ctx context.Context, githubID uint64) (*domain.UserLoginResp, error) {
+	userEnt, err := u.Data.DBClient.User.Query().Where(user.GithubID(githubID)).First(ctx)
+	fmt.Println(userEnt)
+	if err != nil {
+		err = errors.Wrap(err, "get user failed")
+		return nil, err
+	}
+	return &domain.UserLoginResp{
+		Username: userEnt.Username,
+		UserID:   userEnt.ID,
+	}, nil
 }
