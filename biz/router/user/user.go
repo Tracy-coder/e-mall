@@ -19,17 +19,22 @@ func Register(r *server.Hertz) {
 	root := r.Group("/", rootMw()...)
 	{
 		_api := root.Group("/api", _apiMw()...)
-		_api.GET("/captcha", append(_captchaMw(), user.Captcha)...)
-		_api.POST("/register", append(_registerMw(), user.Register)...)
 		{
-			_github := _api.Group("/github", _githubMw()...)
-			_github.GET("/login", append(_gtloginMw(), user.GTLogin)...)
-			_login := _github.Group("/login", _loginMw()...)
-			_login.GET("/callback", append(_gtlogincallbackMw(), user.GTLoginCallback)...)
-		}
-		{
-			_user := _api.Group("/user", _userMw()...)
-			_user.GET("/info", append(_userinfoMw(), user.UserInfo)...)
+			_v1 := _api.Group("/v1", _v1Mw()...)
+			_v1.GET("/captcha", append(_captchaMw(), user.Captcha)...)
+			_v1.POST("/register", append(_registerMw(), user.Register)...)
+			_v1.GET("/verify_email", append(_verifyemailMw(), user.VerifyEmail)...)
+			{
+				_github := _v1.Group("/github", _githubMw()...)
+				_github.GET("/login", append(_gtloginMw(), user.GTLogin)...)
+				_login := _github.Group("/login", _loginMw()...)
+				_login.GET("/callback", append(_gtlogincallbackMw(), user.GTLoginCallback)...)
+			}
+			{
+				_user := _v1.Group("/user", _userMw()...)
+				_user.GET("/info", append(_userinfoMw(), user.UserInfo)...)
+				_user.POST("/valid_email", append(_validemailMw(), user.ValidEmail)...)
+			}
 		}
 	}
 }

@@ -19,8 +19,10 @@ type User interface {
 	Login(ctx context.Context, username string, password string) (res *UserLoginResp, err error)
 	GTLoginCallback(ctx context.Context, code string) (*OauthUserInfo, error)
 	OAuthLogin(ctx context.Context, githubID uint64) (*UserLoginResp, error)
+	BindEmail(ctx context.Context, id uint64, email string) error
+	UnbindEmail(ctx context.Context, id uint64) error
+	VerfifyEmail(ctx context.Context, emailID uint64, secretCode string) error
 }
-
 type UserLoginResp struct {
 	UserID   uint64
 	Username string

@@ -11,6 +11,7 @@ import (
 
 	"github.com/Tracy-coder/e-mall/biz/domain"
 	"github.com/Tracy-coder/e-mall/data"
+	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 	"github.com/Tracy-coder/e-mall/pkg/encrypt"
 	"github.com/jinzhu/copier"
@@ -151,4 +152,69 @@ func (u *User) OAuthLogin(ctx context.Context, githubID uint64) (*domain.UserLog
 		Username: userEnt.Username,
 		UserID:   userEnt.ID,
 	}, nil
+}
+func (u *User) BindEmail(ctx context.Context, id uint64, email_address string) error {
+	fmt.Println(id, email_address)
+	res, err := u.Data.DBClient.Email.Query().Where(email.Email(email_address), email.UserID(id), email.IsVerified(true)).First(ctx)
+	if res != nil {
+		return errors.New("There is already a verified email address, please unbind it first")
+	}
+	err = u.Data.DBClient.User.Update().SetEmail(email_address).Where(user.ID(id)).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	secretCode := generateSecret()
+	verifyEmail, err := u.Data.DBClient.Email.Create().
+		SetEmail(email_address).
+		SetIsVerified(false).
+		SetUserID(id).
+		SetSecret(secretCode).
+		Save(ctx)
+	subject := "Welcome to wzw's E-mall"
+	// TODO: replace this URL with an environment variable that points to a front-end page
+	verifyUrl := fmt.Sprintf("http://localhost:8888/api/v1/verify_email?email_id=%d&secret_code=%s",
+		verifyEmail.ID, verifyEmail.Secret)
+	content := fmt.Sprintf(`Hello!<br/>
+	Thank you for registering with us!<br/>
+	Please <a href="%s">click here</a> to verify your email address.<br/>
+	`, verifyUrl)
+	to := []string{email_address}
+
+	err = NewGmailSender("e-mall", os.Getenv("EMAIL_ADDR"), os.Getenv("EMAIL_KEY")).SendEmail(subject, content, to, nil, nil, nil)
+	if err != nil {
+		return fmt.Errorf("failed to send verify email: %w", err)
+	}
+	// TODO:kafka
+	return nil
+}
+
+func (u *User) UnbindEmail(ctx context.Context, id uint64) error {
+	//TODO:transactions
+	_, err := u.Data.DBClient.Email.Delete().Where(email.UserID(id)).Exec(ctx)
+
+	if err != nil {
+		return err
+	}
+	return u.Data.DBClient.User.Update().ClearEmail().Where(user.ID(id)).Exec(ctx)
+}
+
+func generateSecret() string {
+	var chars = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+	b := make([]rune, 32)
+	rand.Seed(uint64(time.Now().UnixNano()))
+	for i := range b {
+		b[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(b)
+}
+
+func (u *User) VerfifyEmail(ctx context.Context, emailID uint64, secretCode string) error {
+	emailDB, err := u.Data.DBClient.Email.Query().Where(email.ID(emailID)).First(ctx)
+	if err != nil {
+		return err
+	}
+	if emailDB.Secret != secretCode {
+		return errors.New("secret code mismatch")
+	}
+	return u.Data.DBClient.Email.Update().Where(email.ID(emailID)).SetIsVerified(true).Exec(ctx)
 }

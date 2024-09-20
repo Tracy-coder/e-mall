@@ -8,6 +8,23 @@ import (
 )
 
 var (
+	// EmailsColumns holds the columns for the "emails" table.
+	EmailsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeUint8, Nullable: true, Default: 1},
+		{Name: "email", Type: field.TypeString},
+		{Name: "is_verified", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "secret", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeUint64},
+	}
+	// EmailsTable holds the schema information for the "emails" table.
+	EmailsTable = &schema.Table{
+		Name:       "emails",
+		Columns:    EmailsColumns,
+		PrimaryKey: []*schema.Column{EmailsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
@@ -29,6 +46,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		EmailsTable,
 		UsersTable,
 	}
 )

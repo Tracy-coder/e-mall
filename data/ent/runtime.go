@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/schema"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
@@ -13,6 +14,31 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	emailMixin := schema.Email{}.Mixin()
+	emailMixinFields0 := emailMixin[0].Fields()
+	_ = emailMixinFields0
+	emailMixinFields1 := emailMixin[1].Fields()
+	_ = emailMixinFields1
+	emailFields := schema.Email{}.Fields()
+	_ = emailFields
+	// emailDescCreatedAt is the schema descriptor for created_at field.
+	emailDescCreatedAt := emailMixinFields0[1].Descriptor()
+	// email.DefaultCreatedAt holds the default value on creation for the created_at field.
+	email.DefaultCreatedAt = emailDescCreatedAt.Default.(func() time.Time)
+	// emailDescUpdatedAt is the schema descriptor for updated_at field.
+	emailDescUpdatedAt := emailMixinFields0[2].Descriptor()
+	// email.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	email.DefaultUpdatedAt = emailDescUpdatedAt.Default.(func() time.Time)
+	// email.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	email.UpdateDefaultUpdatedAt = emailDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// emailDescStatus is the schema descriptor for status field.
+	emailDescStatus := emailMixinFields1[0].Descriptor()
+	// email.DefaultStatus holds the default value on creation for the status field.
+	email.DefaultStatus = emailDescStatus.Default.(uint8)
+	// emailDescIsVerified is the schema descriptor for is_verified field.
+	emailDescIsVerified := emailFields[1].Descriptor()
+	// email.DefaultIsVerified holds the default value on creation for the is_verified field.
+	email.DefaultIsVerified = emailDescIsVerified.Default.(bool)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

@@ -33,6 +33,10 @@ enum ErrCode {
   CreateUserError = 3;
   CaptchaMismatchError = 4;
   GetUserInfoError = 5;
+  GetUserIdError = 6;
+  BindEmailError = 7;
+  UnbindEmailError = 8;
+  VerifyEmailError = 9;
 }
 
 message BaseResp {
@@ -72,12 +76,33 @@ message GTLoginCallbackReq{
   string code = 1;
 }
 
+enum EmailOperation {
+  Binding = 0;
+  Unbinding = 1;
+}
+
+message ValidEmailReq{
+ EmailOperation op = 1;
+ string email = 2;
+}
+
+message ValidEmailResp{
+  ErrCode errCode = 1;
+  string errMsg = 2;
+  string email = 3;
+  string username = 4;
+}
+
+message VerifyEmailReq{
+  uint64 email_id  = 1;
+  string secret_code = 2;
+}
 service user{
   rpc Register(UserRegisterReq) returns (BaseResp) {
-    option (api.post) = "/api/register";
+    option (api.post) = "/api/v1/register";
   }
   rpc Captcha(Empty) returns (CaptchaInfoResp){
-    option (api.get) = "/api/captcha";
+    option (api.get) = "/api/v1/captcha";
   }
   // rpc Login(UserLoginReq) returns (UserLoginResp){
   //   option (api.post) = "/api/login";
@@ -85,13 +110,20 @@ service user{
 
   //返回的是自己的info
   rpc UserInfo(Empty) returns (UserInfoResp){
-    option (api.get) = "/api/user/info";
+    option (api.get) = "/api/v1/user/info";
   }
 
   rpc GTLogin(Empty) returns (GTLoginResp){
-    option (api.get) = "/api/github/login";
+    option (api.get) = "/api/v1/github/login";
   }
   rpc GTLoginCallback(GTLoginCallbackReq) returns (BaseResp){
-    option (api.get) = "/api/github/login/callback";
+    option (api.get) = "/api/v1/github/login/callback";
+  }
+  rpc ValidEmail(ValidEmailReq) returns (ValidEmailResp){
+    option (api.post) = "/api/v1/user/valid_email";
+  }
+
+  rpc VerifyEmail(VerifyEmailReq) returns(BaseResp){
+    option (api.get) = "/api/v1/verify_email";
   }
 }

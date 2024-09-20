@@ -63,6 +63,7 @@ func newJWT(config configs.Config, db *Data.Data) (jwtMiddleware *jwt.HertzJWTMi
 				hlog.Error("get payloadMap error", "claims data:", claims[identityKey])
 				return nil
 			}
+			fmt.Println("payload userID:", payloadMap["userID"])
 			c.Set("userID", payloadMap["userID"])
 			// ID是为了给Authorizator用
 			return payloadMap
@@ -110,6 +111,7 @@ func newJWT(config configs.Config, db *Data.Data) (jwtMiddleware *jwt.HertzJWTMi
 				}
 				payloadMap := make(map[string]interface{})
 				payloadMap["userID"] = strconv.Itoa(int(res.UserID))
+				fmt.Println("payload userID:", payloadMap["userID"])
 				return payloadMap, nil
 			}
 

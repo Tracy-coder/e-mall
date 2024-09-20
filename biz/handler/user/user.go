@@ -148,6 +148,7 @@ func GTLogin(ctx context.Context, c *app.RequestContext) {
 	url := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=http://localhost:8888/api/github/login/callback", os.Getenv("GITHUB_KEY"))
 	resp.ErrCode = pb.ErrCode_Success
 	resp.LoginURL = url
+	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
 }
 
@@ -172,6 +173,77 @@ func GTLoginCallback(ctx context.Context, c *app.RequestContext) {
 	c.Set("userInfo", *userInfo)
 	fmt.Println(userInfo)
 
-	ctx = context.WithValue(ctx, "OAuth", 1)
+	ctx = context.WithValue(ctx, "OAuth", 1) //TODO
 	middleware.GetJWTMiddleware(configs.Data(), data.Default()).LoginHandler(ctx, c)
+}
+
+// ValidEmail .
+// @router /api/user/valid-email [POST]
+func ValidEmail(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req user.ValidEmailReq
+	resp := new(user.ValidEmailResp)
+	err = c.BindAndValidate(&req)
+	fmt.Println(req)
+	if err != nil {
+		resp.ErrCode = user.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		return
+	}
+
+	userID, err := strconv.ParseUint(c.Value("userID").(string), 10, 64)
+	if err != nil {
+		resp.ErrCode = user.ErrCode_GetUserIdError
+		resp.ErrMsg = "failed to get userID from context"
+		return
+	}
+	if req.Op == user.EmailOperation_Binding {
+		fmt.Println("bind")
+		err := logic.NewUser(data.Default()).BindEmail(ctx, userID, req.Email)
+		if err != nil {
+			fmt.Println(err.Error())
+			resp.ErrCode = user.ErrCode_BindEmailError
+			resp.ErrMsg = err.Error()
+			c.JSON(consts.StatusInternalServerError, resp)
+			return
+		}
+	} else {
+		fmt.Println("unbind")
+		err := logic.NewUser(data.Default()).UnbindEmail(ctx, userID)
+		if err != nil {
+			resp.ErrCode = user.ErrCode_UnbindEmailError
+			resp.ErrMsg = err.Error()
+			c.JSON(consts.StatusInternalServerError, resp)
+			return
+		}
+	}
+	resp.ErrCode = user.ErrCode_Success
+	resp.ErrMsg = "success"
+	c.JSON(consts.StatusOK, resp)
+}
+
+// VerifyEmail .
+// @router /api/v1/verify_email [GET]
+func VerifyEmail(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req user.VerifyEmailReq
+	resp := new(user.BaseResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	fmt.Println(req)
+	err = logic.NewUser(data.Default()).VerfifyEmail(ctx, req.EmailId, req.SecretCode)
+	if err != nil {
+		resp.ErrCode = pb.ErrCode_VerifyEmailError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrMsg = "success"
+	c.JSON(consts.StatusOK, resp)
 }

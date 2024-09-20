@@ -11,6 +11,7 @@ require (
 	github.com/hertz-contrib/jwt v1.0.2
 	github.com/jinzhu/configor v1.2.2
 	github.com/jinzhu/copier v0.4.0
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/mojocn/base64Captcha v1.3.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1

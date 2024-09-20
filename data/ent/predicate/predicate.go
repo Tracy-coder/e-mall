@@ -6,5 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Email is the predicate function for email builders.
+type Email func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

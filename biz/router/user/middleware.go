@@ -37,7 +37,6 @@ func _loginMw() []app.HandlerFunc {
 func _userMw() []app.HandlerFunc {
 	// your code...
 	return []app.HandlerFunc{middleware.GetJWTMiddleware(configs.Data(), data.Default()).MiddlewareFunc()}
-	return nil
 }
 
 func _userinfoMw() []app.HandlerFunc {
@@ -71,6 +70,21 @@ func _githubMw() []app.HandlerFunc {
 }
 
 func _gtlogincallbackMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _validemailMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _v1Mw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _verifyemailMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
