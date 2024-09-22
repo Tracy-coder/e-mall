@@ -25,6 +25,25 @@ var (
 		Columns:    EmailsColumns,
 		PrimaryKey: []*schema.Column{EmailsColumns[0]},
 	}
+	// ProductsColumns holds the columns for the "products" table.
+	ProductsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "category_id", Type: field.TypeUint64},
+		{Name: "title", Type: field.TypeString},
+		{Name: "info", Type: field.TypeString},
+		{Name: "price", Type: field.TypeInt64},
+		{Name: "img_path", Type: field.TypeString},
+		{Name: "discount_price", Type: field.TypeInt64},
+	}
+	// ProductsTable holds the schema information for the "products" table.
+	ProductsTable = &schema.Table{
+		Name:       "products",
+		Columns:    ProductsColumns,
+		PrimaryKey: []*schema.Column{ProductsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
@@ -47,6 +66,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		EmailsTable,
+		ProductsTable,
 		UsersTable,
 	}
 )

@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/Tracy-coder/e-mall/biz/logic"
 	"github.com/Tracy-coder/e-mall/configs"
 	"github.com/Tracy-coder/e-mall/data"
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -12,6 +13,7 @@ import (
 
 func main() {
 	data.Init()
+	go logic.Consumer4SendEmail()
 	c := configs.Data()
 	h := server.Default(
 		server.WithHostPorts(fmt.Sprintf("%s:%d", c.Host, c.Port)))

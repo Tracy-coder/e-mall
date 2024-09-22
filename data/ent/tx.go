@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Email is the client for interacting with the Email builders.
 	Email *EmailClient
+	// Product is the client for interacting with the Product builders.
+	Product *ProductClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -148,6 +150,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Email = NewEmailClient(tx.config)
+	tx.Product = NewProductClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

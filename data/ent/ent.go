@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
 
@@ -74,8 +75,9 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			email.Table: email.ValidColumn,
-			user.Table:  user.ValidColumn,
+			email.Table:   email.ValidColumn,
+			product.Table: product.ValidColumn,
+			user.Table:    user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -9,7 +9,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/IBM/sarama"
 	"github.com/Tracy-coder/e-mall/biz/domain"
+	"github.com/Tracy-coder/e-mall/configs"
 	"github.com/Tracy-coder/e-mall/data"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
@@ -32,7 +34,19 @@ func NewUser(data *data.Data) domain.User {
 
 func (u *User) Register(ctx context.Context, req domain.UserRegisterReq) error {
 	password, _ := encrypt.BcryptEncrypt(req.Password)
-	_, err := u.Data.DBClient.User.Create().
+	tx, err := u.Data.DBClient.Tx(ctx)
+	if err != nil {
+		return errors.Wrap(err, "starting a transaction err")
+	}
+	defer func() {
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				fmt.Println("UpdateMenuAuthority err:", err, "rollback err:", rollbackErr)
+			}
+		}
+	}()
+	userDB, err := tx.User.Create().
 		SetEmail(req.Email).
 		SetUsername(req.Username).
 		SetPassword(password).
@@ -43,7 +57,38 @@ func (u *User) Register(ctx context.Context, req domain.UserRegisterReq) error {
 		return err
 	}
 
-	return nil
+	//TODO: email到底是不是必选项
+	if req.Email != "" {
+		fmt.Println("BindEmail")
+		secretCode := generateSecret()
+		verifyEmail, err := tx.Email.Create().
+			SetEmail(userDB.Email).
+			SetIsVerified(false).
+			SetUserID(userDB.ID).
+			SetSecret(secretCode).
+			Save(ctx)
+		if err != nil {
+			return err
+		}
+
+		msg := SendReqInKafka{
+			EmailAddr:  userDB.Email,
+			EmailID:    verifyEmail.ID,
+			SecretCode: secretCode,
+		}
+		json_msg, _ := json.Marshal(msg)
+
+		_, _, err = SendEmailKafkaProducer.SendMessage(&sarama.ProducerMessage{
+			Topic: configs.Data().Kafka.Topic,
+			Key:   sarama.StringEncoder(json_msg),
+			Value: sarama.StringEncoder(json_msg),
+		})
+		fmt.Println("OK")
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (u *User) Login(ctx context.Context, username string, password string) (res *domain.UserLoginResp, err error) {
@@ -81,7 +126,7 @@ func (u *User) GTLoginCallback(ctx context.Context, code string) (*domain.OauthU
 			AuthURL:  "https://github.com/login/oauth/authorize",
 			TokenURL: "https://github.com/login/oauth/access_token",
 		},
-		RedirectURL: "http://localhost:8888/api/github/login/callback",
+		RedirectURL: "http://localhost:8888/api/v1/github/login/callback",
 	}
 	token, err := config.Exchange(context.Background(), code)
 	if err != nil {
@@ -154,48 +199,79 @@ func (u *User) OAuthLogin(ctx context.Context, githubID uint64) (*domain.UserLog
 	}, nil
 }
 func (u *User) BindEmail(ctx context.Context, id uint64, email_address string) error {
-	fmt.Println(id, email_address)
 	res, err := u.Data.DBClient.Email.Query().Where(email.Email(email_address), email.UserID(id), email.IsVerified(true)).First(ctx)
 	if res != nil {
 		return errors.New("There is already a verified email address, please unbind it first")
 	}
-	err = u.Data.DBClient.User.Update().SetEmail(email_address).Where(user.ID(id)).Exec(ctx)
+	tx, err := u.Data.DBClient.Tx(ctx)
+	if err != nil {
+		return errors.Wrap(err, "starting a transaction err")
+	}
+	defer func() {
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				fmt.Printf("logic: BindEmail err: %s rollback err: %s", err, rollbackErr)
+			}
+		}
+	}()
+	err = tx.User.Update().SetEmail(email_address).Where(user.ID(id)).Exec(ctx)
 	if err != nil {
 		return err
 	}
 	secretCode := generateSecret()
-	verifyEmail, err := u.Data.DBClient.Email.Create().
+	verifyEmail, err := tx.Email.Create().
 		SetEmail(email_address).
 		SetIsVerified(false).
 		SetUserID(id).
 		SetSecret(secretCode).
 		Save(ctx)
-	subject := "Welcome to wzw's E-mall"
-	// TODO: replace this URL with an environment variable that points to a front-end page
-	verifyUrl := fmt.Sprintf("http://localhost:8888/api/v1/verify_email?email_id=%d&secret_code=%s",
-		verifyEmail.ID, verifyEmail.Secret)
-	content := fmt.Sprintf(`Hello!<br/>
-	Thank you for registering with us!<br/>
-	Please <a href="%s">click here</a> to verify your email address.<br/>
-	`, verifyUrl)
-	to := []string{email_address}
-
-	err = NewGmailSender("e-mall", os.Getenv("EMAIL_ADDR"), os.Getenv("EMAIL_KEY")).SendEmail(subject, content, to, nil, nil, nil)
 	if err != nil {
-		return fmt.Errorf("failed to send verify email: %w", err)
+		return err
 	}
-	// TODO:kafka
-	return nil
+
+	msg := SendReqInKafka{
+		EmailAddr:  email_address,
+		EmailID:    verifyEmail.ID,
+		SecretCode: secretCode,
+	}
+	json_msg, _ := json.Marshal(msg)
+
+	_, _, err = SendEmailKafkaProducer.SendMessage(&sarama.ProducerMessage{
+		Topic: configs.Data().Kafka.Topic,
+		Key:   sarama.StringEncoder(json_msg),
+		Value: sarama.StringEncoder(json_msg),
+	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (u *User) UnbindEmail(ctx context.Context, id uint64) error {
-	//TODO:transactions
-	_, err := u.Data.DBClient.Email.Delete().Where(email.UserID(id)).Exec(ctx)
+	tx, err := u.Data.DBClient.Tx(ctx)
+	if err != nil {
+		return errors.Wrap(err, "starting a transaction err")
+	}
+	defer func() {
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				fmt.Printf("logic: BindEmail err: %s rollback err: %s", err, rollbackErr)
+			}
+		}
+	}()
+	_, err = tx.Email.Delete().Where(email.UserID(id)).Exec(ctx)
 
 	if err != nil {
 		return err
 	}
-	return u.Data.DBClient.User.Update().ClearEmail().Where(user.ID(id)).Exec(ctx)
+	err = tx.User.Update().ClearEmail().Where(user.ID(id)).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func generateSecret() string {
@@ -212,6 +288,9 @@ func (u *User) VerfifyEmail(ctx context.Context, emailID uint64, secretCode stri
 	emailDB, err := u.Data.DBClient.Email.Query().Where(email.ID(emailID)).First(ctx)
 	if err != nil {
 		return err
+	}
+	if emailDB.IsVerified == true {
+		return errors.New("Your E-mail address is already verified")
 	}
 	if emailDB.Secret != secretCode {
 		return errors.New("secret code mismatch")

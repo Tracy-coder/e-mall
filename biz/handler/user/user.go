@@ -44,7 +44,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 
 	var userRegisterReq domain.UserRegisterReq
 	_ = copier.Copy(&userRegisterReq, &req)
-
+	fmt.Println(req)
 	err = logic.NewUser(data.Default()).Register(ctx, userRegisterReq)
 	if err != nil {
 		resp.ErrCode = pb.ErrCode_CreateUserError
@@ -145,7 +145,7 @@ func GTLogin(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusInternalServerError, resp)
 		return
 	}
-	url := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=http://localhost:8888/api/github/login/callback", os.Getenv("GITHUB_KEY"))
+	url := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=http://localhost:8888/api/v1/github/login/callback", os.Getenv("GITHUB_KEY"))
 	resp.ErrCode = pb.ErrCode_Success
 	resp.LoginURL = url
 	resp.ErrMsg = "success"

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/schema"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
@@ -39,6 +40,21 @@ func init() {
 	emailDescIsVerified := emailFields[1].Descriptor()
 	// email.DefaultIsVerified holds the default value on creation for the is_verified field.
 	email.DefaultIsVerified = emailDescIsVerified.Default.(bool)
+	productMixin := schema.Product{}.Mixin()
+	productMixinFields0 := productMixin[0].Fields()
+	_ = productMixinFields0
+	productFields := schema.Product{}.Fields()
+	_ = productFields
+	// productDescCreatedAt is the schema descriptor for created_at field.
+	productDescCreatedAt := productMixinFields0[1].Descriptor()
+	// product.DefaultCreatedAt holds the default value on creation for the created_at field.
+	product.DefaultCreatedAt = productDescCreatedAt.Default.(func() time.Time)
+	// productDescUpdatedAt is the schema descriptor for updated_at field.
+	productDescUpdatedAt := productMixinFields0[2].Descriptor()
+	// product.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
+	// product.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

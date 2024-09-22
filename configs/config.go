@@ -78,6 +78,7 @@ type Config struct {
 	Redis    Redis      `yaml:"Redis"`
 	Database Database   `yaml:"Database"`
 	Casbin   CasbinConf `yaml:"Casbin"`
+	Kafka    KafkaConf  `yaml:"Kafka"`
 }
 
 // Captcha is the configuration of the captcha.
@@ -113,4 +114,10 @@ type Database struct {
 // CasbinConf is the configuration of the casbin.
 type CasbinConf struct {
 	ModelText string `yaml:"ModelText"`
+}
+
+type KafkaConf struct {
+	Brokers []string `yaml:"Brokers"`
+	Topic   string   `yaml:"Topic"`
+	GroupID string   `yaml:"GroupID"`
 }
