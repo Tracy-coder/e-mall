@@ -1304,10 +1304,24 @@ func (m *ProductMutation) AddedDiscountPrice() (r int64, exists bool) {
 	return *v, true
 }
 
+// ClearDiscountPrice clears the value of the "discount_price" field.
+func (m *ProductMutation) ClearDiscountPrice() {
+	m.discount_price = nil
+	m.adddiscount_price = nil
+	m.clearedFields[product.FieldDiscountPrice] = struct{}{}
+}
+
+// DiscountPriceCleared returns if the "discount_price" field was cleared in this mutation.
+func (m *ProductMutation) DiscountPriceCleared() bool {
+	_, ok := m.clearedFields[product.FieldDiscountPrice]
+	return ok
+}
+
 // ResetDiscountPrice resets all changes to the "discount_price" field.
 func (m *ProductMutation) ResetDiscountPrice() {
 	m.discount_price = nil
 	m.adddiscount_price = nil
+	delete(m.clearedFields, product.FieldDiscountPrice)
 }
 
 // Where appends a list predicates to the ProductMutation builder.
@@ -1565,7 +1579,11 @@ func (m *ProductMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ProductMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(product.FieldDiscountPrice) {
+		fields = append(fields, product.FieldDiscountPrice)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1578,6 +1596,11 @@ func (m *ProductMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ProductMutation) ClearField(name string) error {
+	switch name {
+	case product.FieldDiscountPrice:
+		m.ClearDiscountPrice()
+		return nil
+	}
 	return fmt.Errorf("unknown Product nullable field %s", name)
 }
 

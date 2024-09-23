@@ -36,7 +36,7 @@ var (
 		{Name: "info", Type: field.TypeString},
 		{Name: "price", Type: field.TypeInt64},
 		{Name: "img_path", Type: field.TypeString},
-		{Name: "discount_price", Type: field.TypeInt64},
+		{Name: "discount_price", Type: field.TypeInt64, Nullable: true},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{

@@ -19,7 +19,7 @@ func _apiMw() []app.HandlerFunc {
 	return nil
 }
 
-func _registerMw() []app.HandlerFunc {
+func _v1Mw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
@@ -29,7 +29,32 @@ func _captchaMw() []app.HandlerFunc {
 	return nil
 }
 
+func _registerMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _verifyemailMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _githubMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
 func _loginMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _gtloginMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _gtlogincallbackMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
@@ -44,47 +69,27 @@ func _userinfoMw() []app.HandlerFunc {
 	return nil
 }
 
-func _qqMw() []app.HandlerFunc {
-	// your code...
-	return nil
-}
-
-func _qqloginMw() []app.HandlerFunc {
-	// your code...
-	return nil
-}
-
-func _gtMw() []app.HandlerFunc {
-	// your code...
-	return nil
-}
-
-func _gtloginMw() []app.HandlerFunc {
-	// your code...
-	return nil
-}
-
-func _githubMw() []app.HandlerFunc {
-	// your code...
-	return nil
-}
-
-func _gtlogincallbackMw() []app.HandlerFunc {
-	// your code...
-	return nil
-}
-
 func _validemailMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
 
-func _v1Mw() []app.HandlerFunc {
+func _v2Mw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
 
-func _verifyemailMw() []app.HandlerFunc {
+func _createproductMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showproductMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _listproductMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/Tracy-coder/e-mall/data/ent"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	_ "github.com/go-sql-driver/mysql"
+	redis "github.com/redis/go-redis/v9"
 )
 
 var data *Data
@@ -36,6 +37,7 @@ func Default() *Data {
 // Data .
 type Data struct {
 	DBClient *ent.Client
+	Redis    *redis.Client
 }
 
 // NewData .
@@ -46,9 +48,21 @@ func NewData(config configs.Config) (data *Data, err error) {
 		return nil, err
 	}
 	data.DBClient = db
+
+	rdb := newRedisDB(config)
+	data.Redis = rdb
 	return data, nil
 }
 
+func newRedisDB(config configs.Config) (rdb *redis.Client) {
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password: config.Redis.Password,
+		DB:       config.Redis.DB,
+	})
+
+	return rdb
+}
 func NewSqlClient(config configs.Config) (client *ent.Client, err error) {
 	drv, err := sql.Open("mysql", fmt.Sprintf(mySqlDsn,
 		config.Database.Username, config.Database.Password, config.Database.Host, config.Database.Port, config.Database.DBName))

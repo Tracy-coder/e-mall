@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package user;
 import "api.proto";
+import "base.proto";
 
 message UserRegisterReq{
     string nickname = 1;
@@ -26,35 +27,20 @@ message UserLoginResp {
 }
 
 
-enum ErrCode {
-  Success = 0;
-  ArgumentError = 1;
-  CaptchaError = 2;
-  CreateUserError = 3;
-  CaptchaMismatchError = 4;
-  GetUserInfoError = 5;
-  GetUserIdError = 6;
-  BindEmailError = 7;
-  UnbindEmailError = 8;
-  VerifyEmailError = 9;
-}
 
-message BaseResp {
-  ErrCode errCode = 1;
-  string errMsg = 2;
-}
+
 
 message Empty {}
 
 message CaptchaInfoResp {
-  ErrCode errCode = 1;
+  base.ErrCode errCode = 1;
   string errMsg = 2;
   string captchaID = 3;
   string imgPath = 4;
 }
 
 message UserInfoResp {
-  ErrCode errCode = 1;
+  base.ErrCode errCode = 1;
   string errMsg = 2;
   uint64 ID = 3;
   string avatar = 4;
@@ -67,7 +53,7 @@ message UserInfoResp {
   string updatedAt = 13;
 }
 message GTLoginResp{
-  ErrCode errCode = 1;
+  base.ErrCode errCode = 1;
   string errMsg = 2;
   string loginURL = 3;
 }
@@ -87,7 +73,7 @@ message ValidEmailReq{
 }
 
 message ValidEmailResp{
-  ErrCode errCode = 1;
+  base.ErrCode errCode = 1;
   string errMsg = 2;
   string email = 3;
   string username = 4;
@@ -98,7 +84,7 @@ message VerifyEmailReq{
   string secret_code = 2;
 }
 service user{
-  rpc Register(UserRegisterReq) returns (BaseResp) {
+  rpc Register(UserRegisterReq) returns (base.BaseResp) {
     option (api.post) = "/api/v1/register";
   }
   rpc Captcha(Empty) returns (CaptchaInfoResp){
@@ -116,14 +102,76 @@ service user{
   rpc GTLogin(Empty) returns (GTLoginResp){
     option (api.get) = "/api/v1/github/login";
   }
-  rpc GTLoginCallback(GTLoginCallbackReq) returns (BaseResp){
+  rpc GTLoginCallback(GTLoginCallbackReq) returns (base.BaseResp){
     option (api.get) = "/api/v1/github/login/callback";
   }
   rpc ValidEmail(ValidEmailReq) returns (ValidEmailResp){
     option (api.post) = "/api/v1/user/valid_email";
   }
 
-  rpc VerifyEmail(VerifyEmailReq) returns(BaseResp){
+  rpc VerifyEmail(VerifyEmailReq) returns(base.BaseResp){
     option (api.get) = "/api/v1/verify_email";
   }
+}
+
+message CreateProductReq {
+	string Name = 1;
+	uint64 CategoryID = 2;
+	string Title = 3;
+	string Info = 4;
+	string ImgPath = 5;
+  int64 Price = 6;
+	int64 DiscountPrice = 7;
+}
+
+message ProductInfo{
+	string Name = 1;
+	uint64 CategoryID = 2;
+	string Title = 3;
+	string Info = 4;
+	string ImgPath = 5;
+	int64 DiscountPrice = 6;
+  uint64 View = 7;
+  uint64 CreatedAt = 8;
+}
+message CreateProductResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+    ProductInfo product = 3; 
+}
+
+message ShowProductReq{
+  uint64 id= 1;
+}
+
+message ShowProductResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+    ProductInfo product = 3; 
+}
+
+message ListProductReq{
+	int32 Limit = 1;
+	int32 Start = 2;
+	uint64 CategoryID = 3;
+}
+
+message ListProductResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+    repeated ProductInfo product = 3; 
+}
+
+service product{
+    rpc CreateProduct(CreateProductReq)returns(CreateProductResp){
+      option (api.post) = "/api/v2/products";
+    }
+
+    rpc ShowProduct(ShowProductReq)returns(ShowProductResp){
+      option (api.get) = "/api/v1/product";
+    }
+
+    rpc ListProduct(ListProductReq)returns(ListProductResp){
+      option (api.get) = "/api/v1/products";
+    }
 }

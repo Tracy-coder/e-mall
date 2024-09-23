@@ -20,7 +20,7 @@ func (Product) Fields() []ent.Field {
 		field.String("info").Comment("info | 详细信息"),
 		field.Int64("price").Comment("price | 商品价格"),
 		field.String("img_path").Comment("image path | 商品图片"),
-		field.Int64("discount_price").Comment("discount price | 优惠后价格"),
+		field.Int64("discount_price").Optional().Comment("discount price | 优惠后价格"),
 	}
 }
 

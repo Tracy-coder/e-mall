@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package base;
+import "api.proto";
+option go_package = "/base";
+enum ErrCode {
+  Success = 0;
+  ArgumentError = 1;
+  CaptchaError = 2;
+  CreateUserError = 3;
+  CaptchaMismatchError = 4;
+  GetUserInfoError = 5;
+  GetUserIdError = 6;
+  BindEmailError = 7;
+  UnbindEmailError = 8;
+  VerifyEmailError = 9;
+  CreateProductError = 10;
+  CopierError = 11;
+  ListProductError = 12;
+}
+
+
+message BaseResp {
+  ErrCode errCode = 1;
+  string errMsg = 2;
+}

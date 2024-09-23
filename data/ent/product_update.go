@@ -153,6 +153,12 @@ func (pu *ProductUpdate) AddDiscountPrice(i int64) *ProductUpdate {
 	return pu
 }
 
+// ClearDiscountPrice clears the value of the "discount_price" field.
+func (pu *ProductUpdate) ClearDiscountPrice() *ProductUpdate {
+	pu.mutation.ClearDiscountPrice()
+	return pu
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pu *ProductUpdate) Mutation() *ProductMutation {
 	return pu.mutation
@@ -235,6 +241,9 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.AddedDiscountPrice(); ok {
 		_spec.AddField(product.FieldDiscountPrice, field.TypeInt64, value)
+	}
+	if pu.mutation.DiscountPriceCleared() {
+		_spec.ClearField(product.FieldDiscountPrice, field.TypeInt64)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -381,6 +390,12 @@ func (puo *ProductUpdateOne) AddDiscountPrice(i int64) *ProductUpdateOne {
 	return puo
 }
 
+// ClearDiscountPrice clears the value of the "discount_price" field.
+func (puo *ProductUpdateOne) ClearDiscountPrice() *ProductUpdateOne {
+	puo.mutation.ClearDiscountPrice()
+	return puo
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (puo *ProductUpdateOne) Mutation() *ProductMutation {
 	return puo.mutation
@@ -493,6 +508,9 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if value, ok := puo.mutation.AddedDiscountPrice(); ok {
 		_spec.AddField(product.FieldDiscountPrice, field.TypeInt64, value)
+	}
+	if puo.mutation.DiscountPriceCleared() {
+		_spec.ClearField(product.FieldDiscountPrice, field.TypeInt64)
 	}
 	_node = &Product{config: puo.config}
 	_spec.Assign = _node.assignValues

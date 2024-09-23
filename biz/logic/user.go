@@ -111,7 +111,7 @@ func (u *User) UserInfo(ctx context.Context, id uint64) (userInfo domain.UserInf
 	userEnt, err := u.Data.DBClient.User.Query().Where(user.IDEQ(id)).First(ctx)
 	if err != nil {
 		err = errors.Wrap(err, "get user failed")
-		return userInfo, err
+		return
 	}
 	// copy to UserInfo struct
 	err = copier.Copy(&userInfo, &userEnt)

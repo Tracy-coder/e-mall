@@ -11,6 +11,7 @@ import (
 	"github.com/Tracy-coder/e-mall/biz/domain"
 	"github.com/Tracy-coder/e-mall/biz/handler/middleware"
 	logic "github.com/Tracy-coder/e-mall/biz/logic"
+	base "github.com/Tracy-coder/e-mall/biz/model/base"
 	"github.com/Tracy-coder/e-mall/biz/model/user"
 	pb "github.com/Tracy-coder/e-mall/biz/model/user"
 	"github.com/Tracy-coder/e-mall/configs"
@@ -24,11 +25,11 @@ import (
 // @router /api/register [POST]
 func Register(ctx context.Context, c *app.RequestContext) {
 	var err error
-	resp := new(user.BaseResp)
+	resp := new(base.BaseResp)
 	var req pb.UserRegisterReq
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrCode = base.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
@@ -36,7 +37,7 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	if configs.Data().IsProd {
 		valid := logic.CaptchaStore.Verify(req.CaptchaID, req.Captcha, true)
 		if !valid {
-			resp.ErrCode = pb.ErrCode_CaptchaMismatchError
+			resp.ErrCode = base.ErrCode_CaptchaMismatchError
 			c.JSON(consts.StatusBadRequest, resp)
 			return
 		}
@@ -47,12 +48,12 @@ func Register(ctx context.Context, c *app.RequestContext) {
 	fmt.Println(req)
 	err = logic.NewUser(data.Default()).Register(ctx, userRegisterReq)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_CreateUserError
+		resp.ErrCode = base.ErrCode_CreateUserError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
-	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrCode = base.ErrCode_Success
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
 }
@@ -65,19 +66,19 @@ func Captcha(ctx context.Context, c *app.RequestContext) {
 	resp := new(user.CaptchaInfoResp)
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrCode = base.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
 	id, b64s, err := logic.NewCaptcha().GetCaptcha()
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_CaptchaError
+		resp.ErrCode = base.ErrCode_CaptchaError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
-	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrCode = base.ErrCode_Success
 	resp.ErrMsg = "success"
 	resp.CaptchaID = id
 	resp.ImgPath = b64s
@@ -93,7 +94,7 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 	resp := new(user.UserInfoResp)
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrCode = base.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
@@ -111,7 +112,7 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 	userID := uint64(i)
 	user, err := logic.NewUser(data.Default()).UserInfo(ctx, userID)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_GetUserInfoError
+		resp.ErrCode = base.ErrCode_GetUserInfoError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusInternalServerError, resp)
 		return
@@ -126,7 +127,7 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 	resp.CreatedAt = user.CreatedAt.Format("2006-01-02 15:04:05")
 	resp.UpdatedAt = user.UpdatedAt.Format("2006-01-02 15:04:05")
 
-	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrCode = base.ErrCode_Success
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
 
@@ -140,13 +141,13 @@ func GTLogin(ctx context.Context, c *app.RequestContext) {
 	resp := new(pb.GTLoginResp)
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrCode = base.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusInternalServerError, resp)
 		return
 	}
 	url := fmt.Sprintf("https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=http://localhost:8888/api/v1/github/login/callback", os.Getenv("GITHUB_KEY"))
-	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrCode = base.ErrCode_Success
 	resp.LoginURL = url
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
@@ -157,10 +158,10 @@ func GTLogin(ctx context.Context, c *app.RequestContext) {
 func GTLoginCallback(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req user.GTLoginCallbackReq
-	resp := new(pb.BaseResp)
+	resp := new(base.BaseResp)
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrCode = base.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusInternalServerError, resp)
 		return
@@ -186,14 +187,14 @@ func ValidEmail(ctx context.Context, c *app.RequestContext) {
 	err = c.BindAndValidate(&req)
 	fmt.Println(req)
 	if err != nil {
-		resp.ErrCode = user.ErrCode_ArgumentError
+		resp.ErrCode = base.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		return
 	}
 
 	userID, err := strconv.ParseUint(c.Value("userID").(string), 10, 64)
 	if err != nil {
-		resp.ErrCode = user.ErrCode_GetUserIdError
+		resp.ErrCode = base.ErrCode_GetUserIdError
 		resp.ErrMsg = "failed to get userID from context"
 		return
 	}
@@ -202,7 +203,7 @@ func ValidEmail(ctx context.Context, c *app.RequestContext) {
 		err := logic.NewUser(data.Default()).BindEmail(ctx, userID, req.Email)
 		if err != nil {
 			fmt.Println(err.Error())
-			resp.ErrCode = user.ErrCode_BindEmailError
+			resp.ErrCode = base.ErrCode_BindEmailError
 			resp.ErrMsg = err.Error()
 			c.JSON(consts.StatusInternalServerError, resp)
 			return
@@ -211,13 +212,13 @@ func ValidEmail(ctx context.Context, c *app.RequestContext) {
 		fmt.Println("unbind")
 		err := logic.NewUser(data.Default()).UnbindEmail(ctx, userID)
 		if err != nil {
-			resp.ErrCode = user.ErrCode_UnbindEmailError
+			resp.ErrCode = base.ErrCode_UnbindEmailError
 			resp.ErrMsg = err.Error()
 			c.JSON(consts.StatusInternalServerError, resp)
 			return
 		}
 	}
-	resp.ErrCode = user.ErrCode_Success
+	resp.ErrCode = base.ErrCode_Success
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
 }
@@ -227,10 +228,10 @@ func ValidEmail(ctx context.Context, c *app.RequestContext) {
 func VerifyEmail(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req user.VerifyEmailReq
-	resp := new(user.BaseResp)
+	resp := new(base.BaseResp)
 	err = c.BindAndValidate(&req)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_ArgumentError
+		resp.ErrCode = base.ErrCode_ArgumentError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusBadRequest, resp)
 		return
@@ -238,12 +239,12 @@ func VerifyEmail(ctx context.Context, c *app.RequestContext) {
 	fmt.Println(req)
 	err = logic.NewUser(data.Default()).VerfifyEmail(ctx, req.EmailId, req.SecretCode)
 	if err != nil {
-		resp.ErrCode = pb.ErrCode_VerifyEmailError
+		resp.ErrCode = base.ErrCode_VerifyEmailError
 		resp.ErrMsg = err.Error()
 		c.JSON(consts.StatusInternalServerError, resp)
 		return
 	}
-	resp.ErrCode = pb.ErrCode_Success
+	resp.ErrCode = base.ErrCode_Success
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
 }

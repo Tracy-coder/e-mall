@@ -559,6 +559,16 @@ func DiscountPriceLTE(v int64) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldDiscountPrice, v))
 }
 
+// DiscountPriceIsNil applies the IsNil predicate on the "discount_price" field.
+func DiscountPriceIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldDiscountPrice))
+}
+
+// DiscountPriceNotNil applies the NotNil predicate on the "discount_price" field.
+func DiscountPriceNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldDiscountPrice))
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Product) predicate.Product {
 	return predicate.Product(sql.AndPredicates(predicates...))

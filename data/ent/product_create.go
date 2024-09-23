@@ -90,6 +90,14 @@ func (pc *ProductCreate) SetDiscountPrice(i int64) *ProductCreate {
 	return pc
 }
 
+// SetNillableDiscountPrice sets the "discount_price" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableDiscountPrice(i *int64) *ProductCreate {
+	if i != nil {
+		pc.SetDiscountPrice(*i)
+	}
+	return pc
+}
+
 // SetID sets the "id" field.
 func (pc *ProductCreate) SetID(u uint64) *ProductCreate {
 	pc.mutation.SetID(u)
@@ -166,9 +174,6 @@ func (pc *ProductCreate) check() error {
 	}
 	if _, ok := pc.mutation.ImgPath(); !ok {
 		return &ValidationError{Name: "img_path", err: errors.New(`ent: missing required field "Product.img_path"`)}
-	}
-	if _, ok := pc.mutation.DiscountPrice(); !ok {
-		return &ValidationError{Name: "discount_price", err: errors.New(`ent: missing required field "Product.discount_price"`)}
 	}
 	return nil
 }
