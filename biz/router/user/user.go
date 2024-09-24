@@ -40,6 +40,8 @@ func Register(r *server.Hertz) {
 		}
 		{
 			_v2 := _api.Group("/v2", _v2Mw()...)
+			_v2.DELETE("/product", append(_deleteproductMw(), user.DeleteProduct)...)
+			_v2.PUT("/product", append(_updateproductMw(), user.UpdateProduct)...)
 			_v2.POST("/products", append(_createproductMw(), user.CreateProduct)...)
 		}
 	}

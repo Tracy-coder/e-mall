@@ -91,3 +91,20 @@ func (p *Product) ListProduct(ctx context.Context, req domain.ListProductReq) ([
 	}
 	return res, nil
 }
+
+func (p *Product) UpdateProduct(ctx context.Context, req domain.UpdateProductReq) error {
+	_, err := p.Data.DBClient.Product.Update().
+		Where(product.ID(req.ID)).
+		SetCategoryID(req.CategoryID).
+		SetNillableImgPath(&req.ImgPath).
+		SetName(req.Name).
+		SetInfo(req.Info).
+		SetTitle(req.Title).
+		SetPrice(req.Price).
+		SetDiscountPrice(req.DiscountPrice).Save(ctx)
+	return err
+}
+
+func (p *Product) DeleteProduct(ctx context.Context, id uint64) error {
+	return p.Data.DBClient.Product.DeleteOneID(id).Exec(ctx)
+}

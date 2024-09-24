@@ -162,6 +162,20 @@ message ListProductResp{
     repeated ProductInfo product = 3; 
 }
 
+message UpdateProductReq{
+  uint64 ID = 1;
+	string Name = 2;
+	uint64 CategoryID = 3;
+	string Title = 4;
+	string Info = 5;
+	string ImgPath = 6;
+  int64 Price = 7;
+	int64 DiscountPrice = 8;
+}
+
+message DeleteProductReq{
+  uint64 id = 1;
+}
 service product{
     rpc CreateProduct(CreateProductReq)returns(CreateProductResp){
       option (api.post) = "/api/v2/products";
@@ -173,5 +187,11 @@ service product{
 
     rpc ListProduct(ListProductReq)returns(ListProductResp){
       option (api.get) = "/api/v1/products";
+    }
+    rpc UpdateProduct(UpdateProductReq)returns(base.BaseResp){
+      option (api.put) = "/api/v2/product";
+    }
+    rpc DeleteProduct(DeleteProductReq)returns(base.BaseResp){
+      option (api.delete) = "/api/v2/product";
     }
 }

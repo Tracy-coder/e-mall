@@ -4,6 +4,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Tracy-coder/e-mall/biz/domain"
 	"github.com/Tracy-coder/e-mall/biz/logic"
@@ -129,6 +130,68 @@ func ListProduct(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	resp.Product = productsInfo
+	resp.ErrCode = base.ErrCode_Success
+	resp.ErrMsg = "success"
+	c.JSON(consts.StatusOK, resp)
+}
+
+// UpdateProduct .
+// @router /api/v1/product [PUT]
+func UpdateProduct(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req pb.UpdateProductReq
+	resp := new(base.BaseResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	var updateProductReq domain.UpdateProductReq
+	err = copier.Copy(&updateProductReq, &req)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CopierError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	err = logic.NewProduct(data.Default()).UpdateProduct(ctx, updateProductReq)
+
+	if err != nil {
+		resp.ErrCode = base.ErrCode_UpdateProductError
+		resp.ErrMsg = err.Error()
+		return
+	}
+
+	resp.ErrCode = base.ErrCode_Success
+	resp.ErrMsg = "success"
+	c.JSON(consts.StatusOK, resp)
+}
+
+// DeleteProduct .
+// @router /api/v2/product [DELETE]
+func DeleteProduct(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req pb.DeleteProductReq
+	err = c.BindAndValidate(&req)
+	resp := new(base.BaseResp)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	fmt.Println(req)
+	err = logic.NewProduct(data.Default()).DeleteProduct(ctx, req.Id)
+
+	if err != nil {
+		resp.ErrCode = base.ErrCode_DeleteProductError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+
 	resp.ErrCode = base.ErrCode_Success
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)

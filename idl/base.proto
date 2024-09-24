@@ -17,6 +17,8 @@ enum ErrCode {
   CreateProductError = 10;
   CopierError = 11;
   ListProductError = 12;
+  UpdateProductError = 13;
+  DeleteProductError = 14;
 }
 
 

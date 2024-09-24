@@ -93,3 +93,13 @@ func _listproductMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _updateproductMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _deleteproductMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
