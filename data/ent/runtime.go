@@ -5,6 +5,8 @@ package ent
 import (
 	"time"
 
+	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/schema"
@@ -15,6 +17,33 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	carouselMixin := schema.Carousel{}.Mixin()
+	carouselMixinFields0 := carouselMixin[0].Fields()
+	_ = carouselMixinFields0
+	carouselFields := schema.Carousel{}.Fields()
+	_ = carouselFields
+	// carouselDescCreatedAt is the schema descriptor for created_at field.
+	carouselDescCreatedAt := carouselMixinFields0[1].Descriptor()
+	// carousel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	carousel.DefaultCreatedAt = carouselDescCreatedAt.Default.(func() time.Time)
+	// carouselDescUpdatedAt is the schema descriptor for updated_at field.
+	carouselDescUpdatedAt := carouselMixinFields0[2].Descriptor()
+	// carousel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	carousel.DefaultUpdatedAt = carouselDescUpdatedAt.Default.(func() time.Time)
+	// carousel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	carousel.UpdateDefaultUpdatedAt = carouselDescUpdatedAt.UpdateDefault.(func() time.Time)
+	categoryFields := schema.Category{}.Fields()
+	_ = categoryFields
+	// categoryDescCreatedAt is the schema descriptor for created_at field.
+	categoryDescCreatedAt := categoryFields[2].Descriptor()
+	// category.DefaultCreatedAt holds the default value on creation for the created_at field.
+	category.DefaultCreatedAt = categoryDescCreatedAt.Default.(func() time.Time)
+	// categoryDescUpdatedAt is the schema descriptor for updated_at field.
+	categoryDescUpdatedAt := categoryFields[3].Descriptor()
+	// category.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	category.DefaultUpdatedAt = categoryDescUpdatedAt.Default.(func() time.Time)
+	// category.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	category.UpdateDefaultUpdatedAt = categoryDescUpdatedAt.UpdateDefault.(func() time.Time)
 	emailMixin := schema.Email{}.Mixin()
 	emailMixinFields0 := emailMixin[0].Fields()
 	_ = emailMixinFields0

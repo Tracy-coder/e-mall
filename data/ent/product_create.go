@@ -10,6 +10,8 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 )
 
@@ -60,6 +62,14 @@ func (pc *ProductCreate) SetCategoryID(u uint64) *ProductCreate {
 	return pc
 }
 
+// SetNillableCategoryID sets the "categoryID" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableCategoryID(u *uint64) *ProductCreate {
+	if u != nil {
+		pc.SetCategoryID(*u)
+	}
+	return pc
+}
+
 // SetTitle sets the "title" field.
 func (pc *ProductCreate) SetTitle(s string) *ProductCreate {
 	pc.mutation.SetTitle(s)
@@ -102,6 +112,26 @@ func (pc *ProductCreate) SetNillableDiscountPrice(i *int64) *ProductCreate {
 func (pc *ProductCreate) SetID(u uint64) *ProductCreate {
 	pc.mutation.SetID(u)
 	return pc
+}
+
+// AddCarouselIDs adds the "carousels" edge to the Carousel entity by IDs.
+func (pc *ProductCreate) AddCarouselIDs(ids ...uint64) *ProductCreate {
+	pc.mutation.AddCarouselIDs(ids...)
+	return pc
+}
+
+// AddCarousels adds the "carousels" edges to the Carousel entity.
+func (pc *ProductCreate) AddCarousels(c ...*Carousel) *ProductCreate {
+	ids := make([]uint64, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddCarouselIDs(ids...)
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (pc *ProductCreate) SetCategory(c *Category) *ProductCreate {
+	return pc.SetCategoryID(c.ID)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -160,9 +190,6 @@ func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Product.name"`)}
 	}
-	if _, ok := pc.mutation.CategoryID(); !ok {
-		return &ValidationError{Name: "categoryID", err: errors.New(`ent: missing required field "Product.categoryID"`)}
-	}
 	if _, ok := pc.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Product.title"`)}
 	}
@@ -219,10 +246,6 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := pc.mutation.CategoryID(); ok {
-		_spec.SetField(product.FieldCategoryID, field.TypeUint64, value)
-		_node.CategoryID = value
-	}
 	if value, ok := pc.mutation.Title(); ok {
 		_spec.SetField(product.FieldTitle, field.TypeString, value)
 		_node.Title = value
@@ -242,6 +265,39 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.DiscountPrice(); ok {
 		_spec.SetField(product.FieldDiscountPrice, field.TypeInt64, value)
 		_node.DiscountPrice = value
+	}
+	if nodes := pc.mutation.CarouselsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CarouselsTable,
+			Columns: []string{product.CarouselsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carousel.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CategoryID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

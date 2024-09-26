@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
 
 // Email is the model entity for the Email schema.
@@ -31,8 +32,32 @@ type Email struct {
 	// secret | 验证码
 	Secret string `json:"secret,omitempty"`
 	// user id | user ID
-	UserID       uint64 `json:"user_id,omitempty"`
+	UserID uint64 `json:"user_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the EmailQuery when eager-loading is set.
+	Edges        EmailEdges `json:"edges"`
+	user_emails  *uint64
 	selectValues sql.SelectValues
+}
+
+// EmailEdges holds the relations/edges for other nodes in the graph.
+type EmailEdges struct {
+	// Owner holds the value of the owner edge.
+	Owner *User `json:"owner,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// OwnerOrErr returns the Owner value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EmailEdges) OwnerOrErr() (*User, error) {
+	if e.Owner != nil {
+		return e.Owner, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: user.Label}
+	}
+	return nil, &NotLoadedError{edge: "owner"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -48,6 +73,8 @@ func (*Email) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case email.FieldCreatedAt, email.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case email.ForeignKeys[0]: // user_emails
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -111,6 +138,13 @@ func (e *Email) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				e.UserID = uint64(value.Int64)
 			}
+		case email.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_emails", value)
+			} else if value.Valid {
+				e.user_emails = new(uint64)
+				*e.user_emails = uint64(value.Int64)
+			}
 		default:
 			e.selectValues.Set(columns[i], values[i])
 		}
@@ -122,6 +156,11 @@ func (e *Email) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (e *Email) Value(name string) (ent.Value, error) {
 	return e.selectValues.Get(name)
+}
+
+// QueryOwner queries the "owner" edge of the Email entity.
+func (e *Email) QueryOwner() *UserQuery {
+	return NewEmailClient(e.config).QueryOwner(e)
 }
 
 // Update returns a builder for updating this Email.

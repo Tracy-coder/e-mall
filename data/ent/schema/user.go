@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/schema/mixins"
 )
@@ -30,7 +31,7 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{edge.To("emails", Email.Type)}
 }
 
 func (User) Mixin() []ent.Mixin {

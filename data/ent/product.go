@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 )
 
@@ -36,7 +37,41 @@ type Product struct {
 	ImgPath string `json:"img_path,omitempty"`
 	// discount price | 优惠后价格
 	DiscountPrice int64 `json:"discount_price,omitempty"`
-	selectValues  sql.SelectValues
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProductQuery when eager-loading is set.
+	Edges        ProductEdges `json:"edges"`
+	selectValues sql.SelectValues
+}
+
+// ProductEdges holds the relations/edges for other nodes in the graph.
+type ProductEdges struct {
+	// Carousels holds the value of the carousels edge.
+	Carousels []*Carousel `json:"carousels,omitempty"`
+	// Category holds the value of the category edge.
+	Category *Category `json:"category,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// CarouselsOrErr returns the Carousels value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) CarouselsOrErr() ([]*Carousel, error) {
+	if e.loadedTypes[0] {
+		return e.Carousels, nil
+	}
+	return nil, &NotLoadedError{edge: "carousels"}
+}
+
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) CategoryOrErr() (*Category, error) {
+	if e.Category != nil {
+		return e.Category, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: category.Label}
+	}
+	return nil, &NotLoadedError{edge: "category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -136,6 +171,16 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (pr *Product) Value(name string) (ent.Value, error) {
 	return pr.selectValues.Get(name)
+}
+
+// QueryCarousels queries the "carousels" edge of the Product entity.
+func (pr *Product) QueryCarousels() *CarouselQuery {
+	return NewProductClient(pr.config).QueryCarousels(pr)
+}
+
+// QueryCategory queries the "category" edge of the Product entity.
+func (pr *Product) QueryCategory() *CategoryQuery {
+	return NewProductClient(pr.config).QueryCategory(pr)
 }
 
 // Update returns a builder for updating this Product.

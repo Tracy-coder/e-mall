@@ -19,6 +19,10 @@ enum ErrCode {
   ListProductError = 12;
   UpdateProductError = 13;
   DeleteProductError = 14;
+  CreateCategoryError = 15;
+  ListCategoryError = 16;
+  CreateCarouselError = 17;
+  ListCarouselError = 18;
 }
 
 

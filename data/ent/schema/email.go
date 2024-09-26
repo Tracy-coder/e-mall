@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/schema/mixins"
 )
@@ -25,8 +26,11 @@ func (Email) Fields() []ent.Field {
 }
 
 // Edges of the Email.
+// TODO:user_id 外键
 func (Email) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("owner", User.Type).Ref("emails").Unique(),
+	}
 }
 
 func (Email) Mixin() []ent.Mixin {

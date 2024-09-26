@@ -4,7 +4,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Tracy-coder/e-mall/biz/domain"
 	"github.com/Tracy-coder/e-mall/biz/logic"
@@ -42,6 +41,7 @@ func CreateProduct(ctx context.Context, c *app.RequestContext) {
 	if err != nil {
 		resp.ErrCode = base.ErrCode_CreateProductError
 		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
 		return
 	}
 	productInfo := new(pb.ProductInfo)
@@ -182,7 +182,6 @@ func DeleteProduct(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
-	fmt.Println(req)
 	err = logic.NewProduct(data.Default()).DeleteProduct(ctx, req.Id)
 
 	if err != nil {

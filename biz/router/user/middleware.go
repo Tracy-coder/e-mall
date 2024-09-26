@@ -103,3 +103,23 @@ func _deleteproductMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _createcategoryMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _listcategoryMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _listcarouselsMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createcarouselMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

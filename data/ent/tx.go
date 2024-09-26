@@ -12,6 +12,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Carousel is the client for interacting with the Carousel builders.
+	Carousel *CarouselClient
+	// Category is the client for interacting with the Category builders.
+	Category *CategoryClient
 	// Email is the client for interacting with the Email builders.
 	Email *EmailClient
 	// Product is the client for interacting with the Product builders.
@@ -149,6 +153,8 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Carousel = NewCarouselClient(tx.config)
+	tx.Category = NewCategoryClient(tx.config)
 	tx.Email = NewEmailClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.User = NewUserClient(tx.config)
@@ -161,7 +167,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Email.QueryXXX(), the query will be executed
+// applies a query, for example: Carousel.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Carousel is the predicate function for carousel builders.
+type Carousel func(*sql.Selector)
+
+// Category is the predicate function for category builders.
+type Category func(*sql.Selector)
+
 // Email is the predicate function for email builders.
 type Email func(*sql.Selector)
 

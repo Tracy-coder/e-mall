@@ -1463,6 +1463,376 @@ func (x *DeleteProductReq) GetId() uint64 {
 	return 0
 }
 
+type CreateCategoryReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ID           uint64 `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty" form:"ID" query:"ID"`
+	CategoryName string `protobuf:"bytes,2,opt,name=CategoryName,proto3" json:"CategoryName,omitempty" form:"CategoryName" query:"CategoryName"`
+}
+
+func (x *CreateCategoryReq) Reset() {
+	*x = CreateCategoryReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_user_proto_msgTypes[20]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateCategoryReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCategoryReq) ProtoMessage() {}
+
+func (x *CreateCategoryReq) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[20]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCategoryReq.ProtoReflect.Descriptor instead.
+func (*CreateCategoryReq) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *CreateCategoryReq) GetID() uint64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+func (x *CreateCategoryReq) GetCategoryName() string {
+	if x != nil {
+		return x.CategoryName
+	}
+	return ""
+}
+
+type CategoryInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ID           uint64 `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty" form:"ID" query:"ID"`
+	CategoryName string `protobuf:"bytes,2,opt,name=CategoryName,proto3" json:"CategoryName,omitempty" form:"CategoryName" query:"CategoryName"`
+	CreatedAt    uint64 `protobuf:"varint,3,opt,name=CreatedAt,proto3" json:"CreatedAt,omitempty" form:"CreatedAt" query:"CreatedAt"`
+}
+
+func (x *CategoryInfo) Reset() {
+	*x = CategoryInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_user_proto_msgTypes[21]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CategoryInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CategoryInfo) ProtoMessage() {}
+
+func (x *CategoryInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[21]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CategoryInfo.ProtoReflect.Descriptor instead.
+func (*CategoryInfo) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *CategoryInfo) GetID() uint64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+func (x *CategoryInfo) GetCategoryName() string {
+	if x != nil {
+		return x.CategoryName
+	}
+	return ""
+}
+
+func (x *CategoryInfo) GetCreatedAt() uint64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type ListCategoryResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ErrCode    base.ErrCode    `protobuf:"varint,1,opt,name=errCode,proto3,enum=base.ErrCode" json:"errCode,omitempty" form:"errCode" query:"errCode"`
+	ErrMsg     string          `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty" form:"errMsg" query:"errMsg"`
+	Categories []*CategoryInfo `protobuf:"bytes,3,rep,name=categories,proto3" json:"categories,omitempty" form:"categories" query:"categories"`
+}
+
+func (x *ListCategoryResp) Reset() {
+	*x = ListCategoryResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_user_proto_msgTypes[22]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListCategoryResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCategoryResp) ProtoMessage() {}
+
+func (x *ListCategoryResp) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[22]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCategoryResp.ProtoReflect.Descriptor instead.
+func (*ListCategoryResp) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListCategoryResp) GetErrCode() base.ErrCode {
+	if x != nil {
+		return x.ErrCode
+	}
+	return base.ErrCode(0)
+}
+
+func (x *ListCategoryResp) GetErrMsg() string {
+	if x != nil {
+		return x.ErrMsg
+	}
+	return ""
+}
+
+func (x *ListCategoryResp) GetCategories() []*CategoryInfo {
+	if x != nil {
+		return x.Categories
+	}
+	return nil
+}
+
+type CarouselInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ID        uint64 `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty" form:"ID" query:"ID"`
+	ImgPath   string `protobuf:"bytes,2,opt,name=ImgPath,proto3" json:"ImgPath,omitempty" form:"ImgPath" query:"ImgPath"`
+	ProductID uint64 `protobuf:"varint,3,opt,name=ProductID,proto3" json:"ProductID,omitempty" form:"ProductID" query:"ProductID"`
+	CreatedAt uint64 `protobuf:"varint,4,opt,name=CreatedAt,proto3" json:"CreatedAt,omitempty" form:"CreatedAt" query:"CreatedAt"`
+}
+
+func (x *CarouselInfo) Reset() {
+	*x = CarouselInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_user_proto_msgTypes[23]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CarouselInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CarouselInfo) ProtoMessage() {}
+
+func (x *CarouselInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[23]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CarouselInfo.ProtoReflect.Descriptor instead.
+func (*CarouselInfo) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CarouselInfo) GetID() uint64 {
+	if x != nil {
+		return x.ID
+	}
+	return 0
+}
+
+func (x *CarouselInfo) GetImgPath() string {
+	if x != nil {
+		return x.ImgPath
+	}
+	return ""
+}
+
+func (x *CarouselInfo) GetProductID() uint64 {
+	if x != nil {
+		return x.ProductID
+	}
+	return 0
+}
+
+func (x *CarouselInfo) GetCreatedAt() uint64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type ListCarouselResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ErrCode   base.ErrCode    `protobuf:"varint,1,opt,name=errCode,proto3,enum=base.ErrCode" json:"errCode,omitempty" form:"errCode" query:"errCode"`
+	ErrMsg    string          `protobuf:"bytes,2,opt,name=errMsg,proto3" json:"errMsg,omitempty" form:"errMsg" query:"errMsg"`
+	Carousels []*CarouselInfo `protobuf:"bytes,3,rep,name=carousels,proto3" json:"carousels,omitempty" form:"carousels" query:"carousels"`
+}
+
+func (x *ListCarouselResp) Reset() {
+	*x = ListCarouselResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_user_proto_msgTypes[24]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ListCarouselResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCarouselResp) ProtoMessage() {}
+
+func (x *ListCarouselResp) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[24]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListCarouselResp.ProtoReflect.Descriptor instead.
+func (*ListCarouselResp) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ListCarouselResp) GetErrCode() base.ErrCode {
+	if x != nil {
+		return x.ErrCode
+	}
+	return base.ErrCode(0)
+}
+
+func (x *ListCarouselResp) GetErrMsg() string {
+	if x != nil {
+		return x.ErrMsg
+	}
+	return ""
+}
+
+func (x *ListCarouselResp) GetCarousels() []*CarouselInfo {
+	if x != nil {
+		return x.Carousels
+	}
+	return nil
+}
+
+type CreateCarouselReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ProductID uint64 `protobuf:"varint,1,opt,name=ProductID,proto3" json:"ProductID,omitempty" form:"ProductID" query:"ProductID"`
+	ImgPath   string `protobuf:"bytes,2,opt,name=ImgPath,proto3" json:"ImgPath,omitempty" form:"ImgPath" query:"ImgPath"`
+}
+
+func (x *CreateCarouselReq) Reset() {
+	*x = CreateCarouselReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_user_proto_msgTypes[25]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CreateCarouselReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCarouselReq) ProtoMessage() {}
+
+func (x *CreateCarouselReq) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[25]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCarouselReq.ProtoReflect.Descriptor instead.
+func (*CreateCarouselReq) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CreateCarouselReq) GetProductID() uint64 {
+	if x != nil {
+		return x.ProductID
+	}
+	return 0
+}
+
+func (x *CreateCarouselReq) GetImgPath() string {
+	if x != nil {
+		return x.ImgPath
+	}
+	return ""
+}
+
 var File_user_proto protoreflect.FileDescriptor
 
 var file_user_proto_rawDesc = []byte{
@@ -1623,7 +1993,47 @@ var file_user_proto_rawDesc = []byte{
 	0x74, 0x50, 0x72, 0x69, 0x63, 0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0d, 0x44, 0x69,
 	0x73, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x50, 0x72, 0x69, 0x63, 0x65, 0x22, 0x22, 0x0a, 0x10, 0x44,
 	0x65, 0x6c, 0x65, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52, 0x65, 0x71, 0x12,
-	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x2a,
+	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22,
+	0x47, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72,
+	0x79, 0x52, 0x65, 0x71, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04,
+	0x52, 0x02, 0x49, 0x44, 0x12, 0x22, 0x0a, 0x0c, 0x43, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79,
+	0x4e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x43, 0x61, 0x74, 0x65,
+	0x67, 0x6f, 0x72, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x60, 0x0a, 0x0c, 0x43, 0x61, 0x74, 0x65,
+	0x67, 0x6f, 0x72, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x44, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x49, 0x44, 0x12, 0x22, 0x0a, 0x0c, 0x43, 0x61, 0x74, 0x65,
+	0x67, 0x6f, 0x72, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c,
+	0x43, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04, 0x52,
+	0x09, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0x87, 0x01, 0x0a, 0x10, 0x4c,
+	0x69, 0x73, 0x74, 0x43, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x12,
+	0x27, 0x0a, 0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e,
+	0x32, 0x0d, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x45, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x52,
+	0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x72, 0x72, 0x4d,
+	0x73, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67,
+	0x12, 0x32, 0x0a, 0x0a, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x69, 0x65, 0x73, 0x18, 0x03,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x43, 0x61, 0x74, 0x65,
+	0x67, 0x6f, 0x72, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0a, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f,
+	0x72, 0x69, 0x65, 0x73, 0x22, 0x74, 0x0a, 0x0c, 0x43, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65, 0x6c,
+	0x49, 0x6e, 0x66, 0x6f, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04,
+	0x52, 0x02, 0x49, 0x44, 0x12, 0x18, 0x0a, 0x07, 0x49, 0x6d, 0x67, 0x50, 0x61, 0x74, 0x68, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x49, 0x6d, 0x67, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1c,
+	0x0a, 0x09, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x49, 0x44, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x04, 0x52, 0x09, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x49, 0x44, 0x12, 0x1c, 0x0a, 0x09,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52,
+	0x09, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0x85, 0x01, 0x0a, 0x10, 0x4c,
+	0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x12,
+	0x27, 0x0a, 0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e,
+	0x32, 0x0d, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x45, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x52,
+	0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x72, 0x72, 0x4d,
+	0x73, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67,
+	0x12, 0x30, 0x0a, 0x09, 0x63, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65, 0x6c, 0x73, 0x18, 0x03, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x43, 0x61, 0x72, 0x6f, 0x75,
+	0x73, 0x65, 0x6c, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x09, 0x63, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65,
+	0x6c, 0x73, 0x22, 0x4b, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x61, 0x72, 0x6f,
+	0x75, 0x73, 0x65, 0x6c, 0x52, 0x65, 0x71, 0x12, 0x1c, 0x0a, 0x09, 0x50, 0x72, 0x6f, 0x64, 0x75,
+	0x63, 0x74, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x09, 0x50, 0x72, 0x6f, 0x64,
+	0x75, 0x63, 0x74, 0x49, 0x44, 0x12, 0x18, 0x0a, 0x07, 0x49, 0x6d, 0x67, 0x50, 0x61, 0x74, 0x68,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x49, 0x6d, 0x67, 0x50, 0x61, 0x74, 0x68, 0x2a,
 	0x2c, 0x0a, 0x0e, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x4f, 0x70, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x12, 0x0b, 0x0a, 0x07, 0x42, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x10, 0x00, 0x12, 0x0d,
 	0x0a, 0x09, 0x55, 0x6e, 0x62, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x10, 0x01, 0x32, 0xa2, 0x04,
@@ -1687,10 +2097,32 @@ var file_user_proto_rawDesc = []byte{
 	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52, 0x65, 0x71,
 	0x1a, 0x0e, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x42, 0x61, 0x73, 0x65, 0x52, 0x65, 0x73, 0x70,
 	0x22, 0x13, 0xe2, 0xc1, 0x18, 0x0f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x32, 0x2f, 0x70, 0x72,
-	0x6f, 0x64, 0x75, 0x63, 0x74, 0x42, 0x2e, 0x5a, 0x2c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e,
-	0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x72, 0x61, 0x63, 0x79, 0x2d, 0x63, 0x6f, 0x64, 0x65, 0x72, 0x2f,
-	0x65, 0x2d, 0x6d, 0x61, 0x6c, 0x6c, 0x2f, 0x62, 0x69, 0x7a, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c,
-	0x2f, 0x75, 0x73, 0x65, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x64, 0x75, 0x63, 0x74, 0x32, 0xaa, 0x01, 0x0a, 0x08, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f,
+	0x72, 0x79, 0x12, 0x51, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x61, 0x74, 0x65,
+	0x67, 0x6f, 0x72, 0x79, 0x12, 0x17, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x43, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x52, 0x65, 0x71, 0x1a, 0x0e, 0x2e,
+	0x62, 0x61, 0x73, 0x65, 0x2e, 0x42, 0x61, 0x73, 0x65, 0x52, 0x65, 0x73, 0x70, 0x22, 0x16, 0xd2,
+	0xc1, 0x18, 0x12, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x32, 0x2f, 0x63, 0x61, 0x74, 0x65, 0x67,
+	0x6f, 0x72, 0x69, 0x65, 0x73, 0x12, 0x4b, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x74,
+	0x65, 0x67, 0x6f, 0x72, 0x79, 0x12, 0x0b, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x1a, 0x16, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61,
+	0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x52, 0x65, 0x73, 0x70, 0x22, 0x16, 0xca, 0xc1, 0x18, 0x12,
+	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x69,
+	0x65, 0x73, 0x32, 0xa9, 0x01, 0x0a, 0x08, 0x63, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65, 0x6c, 0x12,
+	0x50, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65,
+	0x6c, 0x12, 0x17, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43,
+	0x61, 0x72, 0x6f, 0x75, 0x73, 0x65, 0x6c, 0x52, 0x65, 0x71, 0x1a, 0x0e, 0x2e, 0x62, 0x61, 0x73,
+	0x65, 0x2e, 0x42, 0x61, 0x73, 0x65, 0x52, 0x65, 0x73, 0x70, 0x22, 0x15, 0xd2, 0xc1, 0x18, 0x11,
+	0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x32, 0x2f, 0x63, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65, 0x6c,
+	0x73, 0x12, 0x4b, 0x0a, 0x0d, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65,
+	0x6c, 0x73, 0x12, 0x0b, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a,
+	0x16, 0x2e, 0x75, 0x73, 0x65, 0x72, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x61, 0x72, 0x6f, 0x75,
+	0x73, 0x65, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x22, 0x15, 0xca, 0xc1, 0x18, 0x11, 0x2f, 0x61, 0x70,
+	0x69, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x61, 0x72, 0x6f, 0x75, 0x73, 0x65, 0x6c, 0x73, 0x42, 0x2e,
+	0x5a, 0x2c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x72, 0x61,
+	0x63, 0x79, 0x2d, 0x63, 0x6f, 0x64, 0x65, 0x72, 0x2f, 0x65, 0x2d, 0x6d, 0x61, 0x6c, 0x6c, 0x2f,
+	0x62, 0x69, 0x7a, 0x2f, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x2f, 0x75, 0x73, 0x65, 0x72, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1706,7 +2138,7 @@ func file_user_proto_rawDescGZIP() []byte {
 }
 
 var file_user_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_user_proto_goTypes = []interface{}{
 	(EmailOperation)(0),        // 0: user.EmailOperation
 	(*UserRegisterReq)(nil),    // 1: user.UserRegisterReq
@@ -1729,50 +2161,68 @@ var file_user_proto_goTypes = []interface{}{
 	(*ListProductResp)(nil),    // 18: user.ListProductResp
 	(*UpdateProductReq)(nil),   // 19: user.UpdateProductReq
 	(*DeleteProductReq)(nil),   // 20: user.DeleteProductReq
-	(base.ErrCode)(0),          // 21: base.ErrCode
-	(*base.BaseResp)(nil),      // 22: base.BaseResp
+	(*CreateCategoryReq)(nil),  // 21: user.CreateCategoryReq
+	(*CategoryInfo)(nil),       // 22: user.CategoryInfo
+	(*ListCategoryResp)(nil),   // 23: user.ListCategoryResp
+	(*CarouselInfo)(nil),       // 24: user.CarouselInfo
+	(*ListCarouselResp)(nil),   // 25: user.ListCarouselResp
+	(*CreateCarouselReq)(nil),  // 26: user.CreateCarouselReq
+	(base.ErrCode)(0),          // 27: base.ErrCode
+	(*base.BaseResp)(nil),      // 28: base.BaseResp
 }
 var file_user_proto_depIdxs = []int32{
-	21, // 0: user.CaptchaInfoResp.errCode:type_name -> base.ErrCode
-	21, // 1: user.UserInfoResp.errCode:type_name -> base.ErrCode
-	21, // 2: user.GTLoginResp.errCode:type_name -> base.ErrCode
+	27, // 0: user.CaptchaInfoResp.errCode:type_name -> base.ErrCode
+	27, // 1: user.UserInfoResp.errCode:type_name -> base.ErrCode
+	27, // 2: user.GTLoginResp.errCode:type_name -> base.ErrCode
 	0,  // 3: user.ValidEmailReq.op:type_name -> user.EmailOperation
-	21, // 4: user.ValidEmailResp.errCode:type_name -> base.ErrCode
-	21, // 5: user.CreateProductResp.errCode:type_name -> base.ErrCode
+	27, // 4: user.ValidEmailResp.errCode:type_name -> base.ErrCode
+	27, // 5: user.CreateProductResp.errCode:type_name -> base.ErrCode
 	13, // 6: user.CreateProductResp.product:type_name -> user.ProductInfo
-	21, // 7: user.ShowProductResp.errCode:type_name -> base.ErrCode
+	27, // 7: user.ShowProductResp.errCode:type_name -> base.ErrCode
 	13, // 8: user.ShowProductResp.product:type_name -> user.ProductInfo
-	21, // 9: user.ListProductResp.errCode:type_name -> base.ErrCode
+	27, // 9: user.ListProductResp.errCode:type_name -> base.ErrCode
 	13, // 10: user.ListProductResp.product:type_name -> user.ProductInfo
-	1,  // 11: user.user.Register:input_type -> user.UserRegisterReq
-	4,  // 12: user.user.Captcha:input_type -> user.Empty
-	4,  // 13: user.user.UserInfo:input_type -> user.Empty
-	4,  // 14: user.user.GTLogin:input_type -> user.Empty
-	8,  // 15: user.user.GTLoginCallback:input_type -> user.GTLoginCallbackReq
-	9,  // 16: user.user.ValidEmail:input_type -> user.ValidEmailReq
-	11, // 17: user.user.VerifyEmail:input_type -> user.VerifyEmailReq
-	12, // 18: user.product.CreateProduct:input_type -> user.CreateProductReq
-	15, // 19: user.product.ShowProduct:input_type -> user.ShowProductReq
-	17, // 20: user.product.ListProduct:input_type -> user.ListProductReq
-	19, // 21: user.product.UpdateProduct:input_type -> user.UpdateProductReq
-	20, // 22: user.product.DeleteProduct:input_type -> user.DeleteProductReq
-	22, // 23: user.user.Register:output_type -> base.BaseResp
-	5,  // 24: user.user.Captcha:output_type -> user.CaptchaInfoResp
-	6,  // 25: user.user.UserInfo:output_type -> user.UserInfoResp
-	7,  // 26: user.user.GTLogin:output_type -> user.GTLoginResp
-	22, // 27: user.user.GTLoginCallback:output_type -> base.BaseResp
-	10, // 28: user.user.ValidEmail:output_type -> user.ValidEmailResp
-	22, // 29: user.user.VerifyEmail:output_type -> base.BaseResp
-	14, // 30: user.product.CreateProduct:output_type -> user.CreateProductResp
-	16, // 31: user.product.ShowProduct:output_type -> user.ShowProductResp
-	18, // 32: user.product.ListProduct:output_type -> user.ListProductResp
-	22, // 33: user.product.UpdateProduct:output_type -> base.BaseResp
-	22, // 34: user.product.DeleteProduct:output_type -> base.BaseResp
-	23, // [23:35] is the sub-list for method output_type
-	11, // [11:23] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	27, // 11: user.ListCategoryResp.errCode:type_name -> base.ErrCode
+	22, // 12: user.ListCategoryResp.categories:type_name -> user.CategoryInfo
+	27, // 13: user.ListCarouselResp.errCode:type_name -> base.ErrCode
+	24, // 14: user.ListCarouselResp.carousels:type_name -> user.CarouselInfo
+	1,  // 15: user.user.Register:input_type -> user.UserRegisterReq
+	4,  // 16: user.user.Captcha:input_type -> user.Empty
+	4,  // 17: user.user.UserInfo:input_type -> user.Empty
+	4,  // 18: user.user.GTLogin:input_type -> user.Empty
+	8,  // 19: user.user.GTLoginCallback:input_type -> user.GTLoginCallbackReq
+	9,  // 20: user.user.ValidEmail:input_type -> user.ValidEmailReq
+	11, // 21: user.user.VerifyEmail:input_type -> user.VerifyEmailReq
+	12, // 22: user.product.CreateProduct:input_type -> user.CreateProductReq
+	15, // 23: user.product.ShowProduct:input_type -> user.ShowProductReq
+	17, // 24: user.product.ListProduct:input_type -> user.ListProductReq
+	19, // 25: user.product.UpdateProduct:input_type -> user.UpdateProductReq
+	20, // 26: user.product.DeleteProduct:input_type -> user.DeleteProductReq
+	21, // 27: user.category.CreateCategory:input_type -> user.CreateCategoryReq
+	4,  // 28: user.category.ListCategory:input_type -> user.Empty
+	26, // 29: user.carousel.CreateCarousel:input_type -> user.CreateCarouselReq
+	4,  // 30: user.carousel.ListCarousels:input_type -> user.Empty
+	28, // 31: user.user.Register:output_type -> base.BaseResp
+	5,  // 32: user.user.Captcha:output_type -> user.CaptchaInfoResp
+	6,  // 33: user.user.UserInfo:output_type -> user.UserInfoResp
+	7,  // 34: user.user.GTLogin:output_type -> user.GTLoginResp
+	28, // 35: user.user.GTLoginCallback:output_type -> base.BaseResp
+	10, // 36: user.user.ValidEmail:output_type -> user.ValidEmailResp
+	28, // 37: user.user.VerifyEmail:output_type -> base.BaseResp
+	14, // 38: user.product.CreateProduct:output_type -> user.CreateProductResp
+	16, // 39: user.product.ShowProduct:output_type -> user.ShowProductResp
+	18, // 40: user.product.ListProduct:output_type -> user.ListProductResp
+	28, // 41: user.product.UpdateProduct:output_type -> base.BaseResp
+	28, // 42: user.product.DeleteProduct:output_type -> base.BaseResp
+	28, // 43: user.category.CreateCategory:output_type -> base.BaseResp
+	23, // 44: user.category.ListCategory:output_type -> user.ListCategoryResp
+	28, // 45: user.carousel.CreateCarousel:output_type -> base.BaseResp
+	25, // 46: user.carousel.ListCarousels:output_type -> user.ListCarouselResp
+	31, // [31:47] is the sub-list for method output_type
+	15, // [15:31] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_user_proto_init() }
@@ -2021,6 +2471,78 @@ func file_user_proto_init() {
 				return nil
 			}
 		}
+		file_user_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateCategoryReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_user_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CategoryInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_user_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListCategoryResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_user_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CarouselInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_user_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListCarouselResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_user_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CreateCarouselReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -2028,9 +2550,9 @@ func file_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_user_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   20,
+			NumMessages:   26,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   4,
 		},
 		GoTypes:           file_user_proto_goTypes,
 		DependencyIndexes: file_user_proto_depIdxs,

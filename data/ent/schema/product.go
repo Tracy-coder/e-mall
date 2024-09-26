@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/schema/mixins"
 )
@@ -15,7 +16,7 @@ type Product struct {
 func (Product) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").Comment("product name | 商品名称"),
-		field.Uint64("categoryID").Comment("category ID | 分类编号"),
+		field.Uint64("categoryID").Optional().Comment("category ID | 分类编号"),
 		field.String("title").Comment("title | 标题"),
 		field.String("info").Comment("info | 详细信息"),
 		field.Int64("price").Comment("price | 商品价格"),
@@ -25,8 +26,12 @@ func (Product) Fields() []ent.Field {
 }
 
 // Edges of the Email.
+// TODO: categoryID 外键
 func (Product) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("carousels", Carousel.Type),
+		edge.From("category", Category.Type).Ref("product").Field("categoryID").Unique(),
+	}
 }
 
 func (Product) Mixin() []ent.Mixin {

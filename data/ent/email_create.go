@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
 
 // EmailCreate is the builder for creating a Email entity.
@@ -98,6 +99,25 @@ func (ec *EmailCreate) SetUserID(u uint64) *EmailCreate {
 func (ec *EmailCreate) SetID(u uint64) *EmailCreate {
 	ec.mutation.SetID(u)
 	return ec
+}
+
+// SetOwnerID sets the "owner" edge to the User entity by ID.
+func (ec *EmailCreate) SetOwnerID(id uint64) *EmailCreate {
+	ec.mutation.SetOwnerID(id)
+	return ec
+}
+
+// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
+func (ec *EmailCreate) SetNillableOwnerID(id *uint64) *EmailCreate {
+	if id != nil {
+		ec = ec.SetOwnerID(*id)
+	}
+	return ec
+}
+
+// SetOwner sets the "owner" edge to the User entity.
+func (ec *EmailCreate) SetOwner(u *User) *EmailCreate {
+	return ec.SetOwnerID(u.ID)
 }
 
 // Mutation returns the EmailMutation object of the builder.
@@ -229,6 +249,23 @@ func (ec *EmailCreate) createSpec() (*Email, *sqlgraph.CreateSpec) {
 	if value, ok := ec.mutation.UserID(); ok {
 		_spec.SetField(email.FieldUserID, field.TypeUint64, value)
 		_node.UserID = value
+	}
+	if nodes := ec.mutation.OwnerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   email.OwnerTable,
+			Columns: []string{email.OwnerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_emails = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

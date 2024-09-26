@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -31,8 +32,17 @@ const (
 	FieldAvatar = "avatar"
 	// FieldGithubID holds the string denoting the github_id field in the database.
 	FieldGithubID = "github_id"
+	// EdgeEmails holds the string denoting the emails edge name in mutations.
+	EdgeEmails = "emails"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// EmailsTable is the table that holds the emails relation/edge.
+	EmailsTable = "emails"
+	// EmailsInverseTable is the table name for the Email entity.
+	// It exists in this package in order to avoid circular dependency with the "email" package.
+	EmailsInverseTable = "emails"
+	// EmailsColumn is the table column denoting the emails relation/edge.
+	EmailsColumn = "user_emails"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -123,4 +133,25 @@ func ByAvatar(opts ...sql.OrderTermOption) OrderOption {
 // ByGithubID orders the results by the github_id field.
 func ByGithubID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGithubID, opts...).ToFunc()
+}
+
+// ByEmailsCount orders the results by emails count.
+func ByEmailsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEmailsStep(), opts...)
+	}
+}
+
+// ByEmails orders the results by emails terms.
+func ByEmails(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEmailsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newEmailsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EmailsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EmailsTable, EmailsColumn),
+	)
 }

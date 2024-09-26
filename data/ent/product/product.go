@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -31,8 +32,26 @@ const (
 	FieldImgPath = "img_path"
 	// FieldDiscountPrice holds the string denoting the discount_price field in the database.
 	FieldDiscountPrice = "discount_price"
+	// EdgeCarousels holds the string denoting the carousels edge name in mutations.
+	EdgeCarousels = "carousels"
+	// EdgeCategory holds the string denoting the category edge name in mutations.
+	EdgeCategory = "category"
 	// Table holds the table name of the product in the database.
 	Table = "products"
+	// CarouselsTable is the table that holds the carousels relation/edge.
+	CarouselsTable = "carousels"
+	// CarouselsInverseTable is the table name for the Carousel entity.
+	// It exists in this package in order to avoid circular dependency with the "carousel" package.
+	CarouselsInverseTable = "carousels"
+	// CarouselsColumn is the table column denoting the carousels relation/edge.
+	CarouselsColumn = "product_id"
+	// CategoryTable is the table that holds the category relation/edge.
+	CategoryTable = "products"
+	// CategoryInverseTable is the table name for the Category entity.
+	// It exists in this package in order to avoid circular dependency with the "category" package.
+	CategoryInverseTable = "categories"
+	// CategoryColumn is the table column denoting the category relation/edge.
+	CategoryColumn = "category_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -119,4 +138,39 @@ func ByImgPath(opts ...sql.OrderTermOption) OrderOption {
 // ByDiscountPrice orders the results by the discount_price field.
 func ByDiscountPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDiscountPrice, opts...).ToFunc()
+}
+
+// ByCarouselsCount orders the results by carousels count.
+func ByCarouselsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCarouselsStep(), opts...)
+	}
+}
+
+// ByCarousels orders the results by carousels terms.
+func ByCarousels(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCarouselsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCategoryField orders the results by category field.
+func ByCategoryField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCategoryStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newCarouselsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CarouselsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CarouselsTable, CarouselsColumn),
+	)
+}
+func newCategoryStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CategoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
+	)
 }

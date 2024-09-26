@@ -72,7 +72,7 @@ func NewSqlClient(config configs.Config) (client *ent.Client, err error) {
 	var drive dialect.Driver = drv
 	client = ent.NewClient(ent.Driver(drive))
 
-	if err := client.Schema.Create(context.Background(), schema.WithForeignKeys(false)); err != nil {
+	if err := client.Schema.Create(context.Background(), schema.WithForeignKeys(true)); err != nil {
 		hlog.Fatalf("failed creating schema resources: %v", err)
 		return nil, err
 	}

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
+	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
 
 // EmailQuery is the builder for querying Email entities.
@@ -22,6 +23,8 @@ type EmailQuery struct {
 	order      []email.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Email
+	withOwner  *UserQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (eq *EmailQuery) Unique(unique bool) *EmailQuery {
 func (eq *EmailQuery) Order(o ...email.OrderOption) *EmailQuery {
 	eq.order = append(eq.order, o...)
 	return eq
+}
+
+// QueryOwner chains the current query on the "owner" edge.
+func (eq *EmailQuery) QueryOwner() *UserQuery {
+	query := (&UserClient{config: eq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := eq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := eq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(email.Table, email.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, email.OwnerTable, email.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Email entity from the query.
@@ -250,10 +275,22 @@ func (eq *EmailQuery) Clone() *EmailQuery {
 		order:      append([]email.OrderOption{}, eq.order...),
 		inters:     append([]Interceptor{}, eq.inters...),
 		predicates: append([]predicate.Email{}, eq.predicates...),
+		withOwner:  eq.withOwner.Clone(),
 		// clone intermediate query.
 		sql:  eq.sql.Clone(),
 		path: eq.path,
 	}
+}
+
+// WithOwner tells the query-builder to eager-load the nodes that are connected to
+// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
+func (eq *EmailQuery) WithOwner(opts ...func(*UserQuery)) *EmailQuery {
+	query := (&UserClient{config: eq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	eq.withOwner = query
+	return eq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,15 +369,26 @@ func (eq *EmailQuery) prepareQuery(ctx context.Context) error {
 
 func (eq *EmailQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Email, error) {
 	var (
-		nodes = []*Email{}
-		_spec = eq.querySpec()
+		nodes       = []*Email{}
+		withFKs     = eq.withFKs
+		_spec       = eq.querySpec()
+		loadedTypes = [1]bool{
+			eq.withOwner != nil,
+		}
 	)
+	if eq.withOwner != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, email.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Email).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Email{config: eq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +400,46 @@ func (eq *EmailQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Email,
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := eq.withOwner; query != nil {
+		if err := eq.loadOwner(ctx, query, nodes, nil,
+			func(n *Email, e *User) { n.Edges.Owner = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (eq *EmailQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Email, init func(*Email), assign func(*Email, *User)) error {
+	ids := make([]uint64, 0, len(nodes))
+	nodeids := make(map[uint64][]*Email)
+	for i := range nodes {
+		if nodes[i].user_emails == nil {
+			continue
+		}
+		fk := *nodes[i].user_emails
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_emails" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (eq *EmailQuery) sqlCount(ctx context.Context) (int, error) {

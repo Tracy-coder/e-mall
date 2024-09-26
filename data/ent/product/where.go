@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 )
 
@@ -264,24 +265,14 @@ func CategoryIDNotIn(vs ...uint64) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldCategoryID, vs...))
 }
 
-// CategoryIDGT applies the GT predicate on the "categoryID" field.
-func CategoryIDGT(v uint64) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldCategoryID, v))
+// CategoryIDIsNil applies the IsNil predicate on the "categoryID" field.
+func CategoryIDIsNil() predicate.Product {
+	return predicate.Product(sql.FieldIsNull(FieldCategoryID))
 }
 
-// CategoryIDGTE applies the GTE predicate on the "categoryID" field.
-func CategoryIDGTE(v uint64) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldCategoryID, v))
-}
-
-// CategoryIDLT applies the LT predicate on the "categoryID" field.
-func CategoryIDLT(v uint64) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldCategoryID, v))
-}
-
-// CategoryIDLTE applies the LTE predicate on the "categoryID" field.
-func CategoryIDLTE(v uint64) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldCategoryID, v))
+// CategoryIDNotNil applies the NotNil predicate on the "categoryID" field.
+func CategoryIDNotNil() predicate.Product {
+	return predicate.Product(sql.FieldNotNull(FieldCategoryID))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.
@@ -567,6 +558,52 @@ func DiscountPriceIsNil() predicate.Product {
 // DiscountPriceNotNil applies the NotNil predicate on the "discount_price" field.
 func DiscountPriceNotNil() predicate.Product {
 	return predicate.Product(sql.FieldNotNull(FieldDiscountPrice))
+}
+
+// HasCarousels applies the HasEdge predicate on the "carousels" edge.
+func HasCarousels() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CarouselsTable, CarouselsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCarouselsWith applies the HasEdge predicate on the "carousels" edge with a given conditions (other predicates).
+func HasCarouselsWith(preds ...predicate.Carousel) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newCarouselsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCategory applies the HasEdge predicate on the "category" edge.
+func HasCategory() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
+func HasCategoryWith(preds ...predicate.Category) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newCategoryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,6 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 )
@@ -18,10 +21,12 @@ import (
 // ProductQuery is the builder for querying Product entities.
 type ProductQuery struct {
 	config
-	ctx        *QueryContext
-	order      []product.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Product
+	ctx           *QueryContext
+	order         []product.OrderOption
+	inters        []Interceptor
+	predicates    []predicate.Product
+	withCarousels *CarouselQuery
+	withCategory  *CategoryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +61,50 @@ func (pq *ProductQuery) Unique(unique bool) *ProductQuery {
 func (pq *ProductQuery) Order(o ...product.OrderOption) *ProductQuery {
 	pq.order = append(pq.order, o...)
 	return pq
+}
+
+// QueryCarousels chains the current query on the "carousels" edge.
+func (pq *ProductQuery) QueryCarousels() *CarouselQuery {
+	query := (&CarouselClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(carousel.Table, carousel.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.CarouselsTable, product.CarouselsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCategory chains the current query on the "category" edge.
+func (pq *ProductQuery) QueryCategory() *CategoryQuery {
+	query := (&CategoryClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(category.Table, category.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, product.CategoryTable, product.CategoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Product entity from the query.
@@ -245,15 +294,39 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		return nil
 	}
 	return &ProductQuery{
-		config:     pq.config,
-		ctx:        pq.ctx.Clone(),
-		order:      append([]product.OrderOption{}, pq.order...),
-		inters:     append([]Interceptor{}, pq.inters...),
-		predicates: append([]predicate.Product{}, pq.predicates...),
+		config:        pq.config,
+		ctx:           pq.ctx.Clone(),
+		order:         append([]product.OrderOption{}, pq.order...),
+		inters:        append([]Interceptor{}, pq.inters...),
+		predicates:    append([]predicate.Product{}, pq.predicates...),
+		withCarousels: pq.withCarousels.Clone(),
+		withCategory:  pq.withCategory.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
+}
+
+// WithCarousels tells the query-builder to eager-load the nodes that are connected to
+// the "carousels" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithCarousels(opts ...func(*CarouselQuery)) *ProductQuery {
+	query := (&CarouselClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withCarousels = query
+	return pq
+}
+
+// WithCategory tells the query-builder to eager-load the nodes that are connected to
+// the "category" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithCategory(opts ...func(*CategoryQuery)) *ProductQuery {
+	query := (&CategoryClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withCategory = query
+	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,8 +405,12 @@ func (pq *ProductQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Product, error) {
 	var (
-		nodes = []*Product{}
-		_spec = pq.querySpec()
+		nodes       = []*Product{}
+		_spec       = pq.querySpec()
+		loadedTypes = [2]bool{
+			pq.withCarousels != nil,
+			pq.withCategory != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Product).scanValues(nil, columns)
@@ -341,6 +418,7 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Product{config: pq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +430,80 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := pq.withCarousels; query != nil {
+		if err := pq.loadCarousels(ctx, query, nodes,
+			func(n *Product) { n.Edges.Carousels = []*Carousel{} },
+			func(n *Product, e *Carousel) { n.Edges.Carousels = append(n.Edges.Carousels, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withCategory; query != nil {
+		if err := pq.loadCategory(ctx, query, nodes, nil,
+			func(n *Product, e *Category) { n.Edges.Category = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (pq *ProductQuery) loadCarousels(ctx context.Context, query *CarouselQuery, nodes []*Product, init func(*Product), assign func(*Product, *Carousel)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uint64]*Product)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(carousel.FieldProductID)
+	}
+	query.Where(predicate.Carousel(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(product.CarouselsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProductID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "ProductID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProductQuery) loadCategory(ctx context.Context, query *CategoryQuery, nodes []*Product, init func(*Product), assign func(*Product, *Category)) error {
+	ids := make([]uint64, 0, len(nodes))
+	nodeids := make(map[uint64][]*Product)
+	for i := range nodes {
+		fk := nodes[i].CategoryID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(category.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "categoryID" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (pq *ProductQuery) sqlCount(ctx context.Context) (int, error) {
@@ -379,6 +530,9 @@ func (pq *ProductQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != product.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if pq.withCategory != nil {
+			_spec.Node.AddColumnOnce(product.FieldCategoryID)
 		}
 	}
 	if ps := pq.predicates; len(ps) > 0 {

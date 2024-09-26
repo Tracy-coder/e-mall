@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
 
@@ -134,6 +135,21 @@ func (uc *UserCreate) SetNillableGithubID(u *uint64) *UserCreate {
 func (uc *UserCreate) SetID(u uint64) *UserCreate {
 	uc.mutation.SetID(u)
 	return uc
+}
+
+// AddEmailIDs adds the "emails" edge to the Email entity by IDs.
+func (uc *UserCreate) AddEmailIDs(ids ...uint64) *UserCreate {
+	uc.mutation.AddEmailIDs(ids...)
+	return uc
+}
+
+// AddEmails adds the "emails" edges to the Email entity.
+func (uc *UserCreate) AddEmails(e ...*Email) *UserCreate {
+	ids := make([]uint64, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return uc.AddEmailIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -270,6 +286,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.GithubID(); ok {
 		_spec.SetField(user.FieldGithubID, field.TypeUint64, value)
 		_node.GithubID = value
+	}
+	if nodes := uc.mutation.EmailsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.EmailsTable,
+			Columns: []string{user.EmailsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(email.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

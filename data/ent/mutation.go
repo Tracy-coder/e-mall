@@ -11,6 +11,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
@@ -26,10 +28,1131 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeEmail   = "Email"
-	TypeProduct = "Product"
-	TypeUser    = "User"
+	TypeCarousel = "Carousel"
+	TypeCategory = "Category"
+	TypeEmail    = "Email"
+	TypeProduct  = "Product"
+	TypeUser     = "User"
 )
+
+// CarouselMutation represents an operation that mutates the Carousel nodes in the graph.
+type CarouselMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uint64
+	created_at    *time.Time
+	updated_at    *time.Time
+	_ImgPath      *string
+	clearedFields map[string]struct{}
+	owner         *uint64
+	clearedowner  bool
+	done          bool
+	oldValue      func(context.Context) (*Carousel, error)
+	predicates    []predicate.Carousel
+}
+
+var _ ent.Mutation = (*CarouselMutation)(nil)
+
+// carouselOption allows management of the mutation configuration using functional options.
+type carouselOption func(*CarouselMutation)
+
+// newCarouselMutation creates new mutation for the Carousel entity.
+func newCarouselMutation(c config, op Op, opts ...carouselOption) *CarouselMutation {
+	m := &CarouselMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCarousel,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCarouselID sets the ID field of the mutation.
+func withCarouselID(id uint64) carouselOption {
+	return func(m *CarouselMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Carousel
+		)
+		m.oldValue = func(ctx context.Context) (*Carousel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Carousel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCarousel sets the old Carousel of the mutation.
+func withCarousel(node *Carousel) carouselOption {
+	return func(m *CarouselMutation) {
+		m.oldValue = func(context.Context) (*Carousel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CarouselMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CarouselMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Carousel entities.
+func (m *CarouselMutation) SetID(id uint64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CarouselMutation) ID() (id uint64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CarouselMutation) IDs(ctx context.Context) ([]uint64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Carousel.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CarouselMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CarouselMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Carousel entity.
+// If the Carousel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CarouselMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CarouselMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CarouselMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CarouselMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Carousel entity.
+// If the Carousel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CarouselMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CarouselMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetProductID sets the "ProductID" field.
+func (m *CarouselMutation) SetProductID(u uint64) {
+	m.owner = &u
+}
+
+// ProductID returns the value of the "ProductID" field in the mutation.
+func (m *CarouselMutation) ProductID() (r uint64, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProductID returns the old "ProductID" field's value of the Carousel entity.
+// If the Carousel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CarouselMutation) OldProductID(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProductID: %w", err)
+	}
+	return oldValue.ProductID, nil
+}
+
+// ClearProductID clears the value of the "ProductID" field.
+func (m *CarouselMutation) ClearProductID() {
+	m.owner = nil
+	m.clearedFields[carousel.FieldProductID] = struct{}{}
+}
+
+// ProductIDCleared returns if the "ProductID" field was cleared in this mutation.
+func (m *CarouselMutation) ProductIDCleared() bool {
+	_, ok := m.clearedFields[carousel.FieldProductID]
+	return ok
+}
+
+// ResetProductID resets all changes to the "ProductID" field.
+func (m *CarouselMutation) ResetProductID() {
+	m.owner = nil
+	delete(m.clearedFields, carousel.FieldProductID)
+}
+
+// SetImgPath sets the "ImgPath" field.
+func (m *CarouselMutation) SetImgPath(s string) {
+	m._ImgPath = &s
+}
+
+// ImgPath returns the value of the "ImgPath" field in the mutation.
+func (m *CarouselMutation) ImgPath() (r string, exists bool) {
+	v := m._ImgPath
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldImgPath returns the old "ImgPath" field's value of the Carousel entity.
+// If the Carousel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CarouselMutation) OldImgPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldImgPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldImgPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldImgPath: %w", err)
+	}
+	return oldValue.ImgPath, nil
+}
+
+// ResetImgPath resets all changes to the "ImgPath" field.
+func (m *CarouselMutation) ResetImgPath() {
+	m._ImgPath = nil
+}
+
+// SetOwnerID sets the "owner" edge to the Product entity by id.
+func (m *CarouselMutation) SetOwnerID(id uint64) {
+	m.owner = &id
+}
+
+// ClearOwner clears the "owner" edge to the Product entity.
+func (m *CarouselMutation) ClearOwner() {
+	m.clearedowner = true
+	m.clearedFields[carousel.FieldProductID] = struct{}{}
+}
+
+// OwnerCleared reports if the "owner" edge to the Product entity was cleared.
+func (m *CarouselMutation) OwnerCleared() bool {
+	return m.ProductIDCleared() || m.clearedowner
+}
+
+// OwnerID returns the "owner" edge ID in the mutation.
+func (m *CarouselMutation) OwnerID() (id uint64, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *CarouselMutation) OwnerIDs() (ids []uint64) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *CarouselMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
+// Where appends a list predicates to the CarouselMutation builder.
+func (m *CarouselMutation) Where(ps ...predicate.Carousel) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CarouselMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CarouselMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Carousel, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CarouselMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CarouselMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Carousel).
+func (m *CarouselMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CarouselMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, carousel.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, carousel.FieldUpdatedAt)
+	}
+	if m.owner != nil {
+		fields = append(fields, carousel.FieldProductID)
+	}
+	if m._ImgPath != nil {
+		fields = append(fields, carousel.FieldImgPath)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CarouselMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case carousel.FieldCreatedAt:
+		return m.CreatedAt()
+	case carousel.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case carousel.FieldProductID:
+		return m.ProductID()
+	case carousel.FieldImgPath:
+		return m.ImgPath()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CarouselMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case carousel.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case carousel.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case carousel.FieldProductID:
+		return m.OldProductID(ctx)
+	case carousel.FieldImgPath:
+		return m.OldImgPath(ctx)
+	}
+	return nil, fmt.Errorf("unknown Carousel field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CarouselMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case carousel.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case carousel.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case carousel.FieldProductID:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProductID(v)
+		return nil
+	case carousel.FieldImgPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetImgPath(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Carousel field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CarouselMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CarouselMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CarouselMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Carousel numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CarouselMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(carousel.FieldProductID) {
+		fields = append(fields, carousel.FieldProductID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CarouselMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CarouselMutation) ClearField(name string) error {
+	switch name {
+	case carousel.FieldProductID:
+		m.ClearProductID()
+		return nil
+	}
+	return fmt.Errorf("unknown Carousel nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CarouselMutation) ResetField(name string) error {
+	switch name {
+	case carousel.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case carousel.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case carousel.FieldProductID:
+		m.ResetProductID()
+		return nil
+	case carousel.FieldImgPath:
+		m.ResetImgPath()
+		return nil
+	}
+	return fmt.Errorf("unknown Carousel field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CarouselMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.owner != nil {
+		edges = append(edges, carousel.EdgeOwner)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CarouselMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case carousel.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CarouselMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CarouselMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CarouselMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedowner {
+		edges = append(edges, carousel.EdgeOwner)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CarouselMutation) EdgeCleared(name string) bool {
+	switch name {
+	case carousel.EdgeOwner:
+		return m.clearedowner
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CarouselMutation) ClearEdge(name string) error {
+	switch name {
+	case carousel.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	}
+	return fmt.Errorf("unknown Carousel unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CarouselMutation) ResetEdge(name string) error {
+	switch name {
+	case carousel.EdgeOwner:
+		m.ResetOwner()
+		return nil
+	}
+	return fmt.Errorf("unknown Carousel edge %s", name)
+}
+
+// CategoryMutation represents an operation that mutates the Category nodes in the graph.
+type CategoryMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uint64
+	categoryName   *string
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	product        map[uint64]struct{}
+	removedproduct map[uint64]struct{}
+	clearedproduct bool
+	done           bool
+	oldValue       func(context.Context) (*Category, error)
+	predicates     []predicate.Category
+}
+
+var _ ent.Mutation = (*CategoryMutation)(nil)
+
+// categoryOption allows management of the mutation configuration using functional options.
+type categoryOption func(*CategoryMutation)
+
+// newCategoryMutation creates new mutation for the Category entity.
+func newCategoryMutation(c config, op Op, opts ...categoryOption) *CategoryMutation {
+	m := &CategoryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCategory,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCategoryID sets the ID field of the mutation.
+func withCategoryID(id uint64) categoryOption {
+	return func(m *CategoryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Category
+		)
+		m.oldValue = func(ctx context.Context) (*Category, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Category.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCategory sets the old Category of the mutation.
+func withCategory(node *Category) categoryOption {
+	return func(m *CategoryMutation) {
+		m.oldValue = func(context.Context) (*Category, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CategoryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CategoryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Category entities.
+func (m *CategoryMutation) SetID(id uint64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CategoryMutation) ID() (id uint64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CategoryMutation) IDs(ctx context.Context) ([]uint64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Category.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCategoryName sets the "categoryName" field.
+func (m *CategoryMutation) SetCategoryName(s string) {
+	m.categoryName = &s
+}
+
+// CategoryName returns the value of the "categoryName" field in the mutation.
+func (m *CategoryMutation) CategoryName() (r string, exists bool) {
+	v := m.categoryName
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategoryName returns the old "categoryName" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldCategoryName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategoryName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategoryName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategoryName: %w", err)
+	}
+	return oldValue.CategoryName, nil
+}
+
+// ResetCategoryName resets all changes to the "categoryName" field.
+func (m *CategoryMutation) ResetCategoryName() {
+	m.categoryName = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CategoryMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CategoryMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CategoryMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *CategoryMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *CategoryMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *CategoryMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddProductIDs adds the "product" edge to the Product entity by ids.
+func (m *CategoryMutation) AddProductIDs(ids ...uint64) {
+	if m.product == nil {
+		m.product = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		m.product[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProduct clears the "product" edge to the Product entity.
+func (m *CategoryMutation) ClearProduct() {
+	m.clearedproduct = true
+}
+
+// ProductCleared reports if the "product" edge to the Product entity was cleared.
+func (m *CategoryMutation) ProductCleared() bool {
+	return m.clearedproduct
+}
+
+// RemoveProductIDs removes the "product" edge to the Product entity by IDs.
+func (m *CategoryMutation) RemoveProductIDs(ids ...uint64) {
+	if m.removedproduct == nil {
+		m.removedproduct = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		delete(m.product, ids[i])
+		m.removedproduct[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProduct returns the removed IDs of the "product" edge to the Product entity.
+func (m *CategoryMutation) RemovedProductIDs() (ids []uint64) {
+	for id := range m.removedproduct {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ProductIDs returns the "product" edge IDs in the mutation.
+func (m *CategoryMutation) ProductIDs() (ids []uint64) {
+	for id := range m.product {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProduct resets all changes to the "product" edge.
+func (m *CategoryMutation) ResetProduct() {
+	m.product = nil
+	m.clearedproduct = false
+	m.removedproduct = nil
+}
+
+// Where appends a list predicates to the CategoryMutation builder.
+func (m *CategoryMutation) Where(ps ...predicate.Category) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CategoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CategoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Category, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CategoryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CategoryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Category).
+func (m *CategoryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CategoryMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.categoryName != nil {
+		fields = append(fields, category.FieldCategoryName)
+	}
+	if m.created_at != nil {
+		fields = append(fields, category.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, category.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case category.FieldCategoryName:
+		return m.CategoryName()
+	case category.FieldCreatedAt:
+		return m.CreatedAt()
+	case category.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case category.FieldCategoryName:
+		return m.OldCategoryName(ctx)
+	case category.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case category.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Category field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CategoryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case category.FieldCategoryName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategoryName(v)
+		return nil
+	case category.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case category.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Category field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CategoryMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CategoryMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CategoryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Category numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CategoryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CategoryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CategoryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Category nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CategoryMutation) ResetField(name string) error {
+	switch name {
+	case category.FieldCategoryName:
+		m.ResetCategoryName()
+		return nil
+	case category.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case category.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Category field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CategoryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.product != nil {
+		edges = append(edges, category.EdgeProduct)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CategoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case category.EdgeProduct:
+		ids := make([]ent.Value, 0, len(m.product))
+		for id := range m.product {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CategoryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedproduct != nil {
+		edges = append(edges, category.EdgeProduct)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CategoryMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case category.EdgeProduct:
+		ids := make([]ent.Value, 0, len(m.removedproduct))
+		for id := range m.removedproduct {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CategoryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedproduct {
+		edges = append(edges, category.EdgeProduct)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CategoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case category.EdgeProduct:
+		return m.clearedproduct
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CategoryMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Category unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CategoryMutation) ResetEdge(name string) error {
+	switch name {
+	case category.EdgeProduct:
+		m.ResetProduct()
+		return nil
+	}
+	return fmt.Errorf("unknown Category edge %s", name)
+}
 
 // EmailMutation represents an operation that mutates the Email nodes in the graph.
 type EmailMutation struct {
@@ -47,6 +1170,8 @@ type EmailMutation struct {
 	user_id       *uint64
 	adduser_id    *int64
 	clearedFields map[string]struct{}
+	owner         *uint64
+	clearedowner  bool
 	done          bool
 	oldValue      func(context.Context) (*Email, error)
 	predicates    []predicate.Email
@@ -475,6 +1600,45 @@ func (m *EmailMutation) ResetUserID() {
 	m.adduser_id = nil
 }
 
+// SetOwnerID sets the "owner" edge to the User entity by id.
+func (m *EmailMutation) SetOwnerID(id uint64) {
+	m.owner = &id
+}
+
+// ClearOwner clears the "owner" edge to the User entity.
+func (m *EmailMutation) ClearOwner() {
+	m.clearedowner = true
+}
+
+// OwnerCleared reports if the "owner" edge to the User entity was cleared.
+func (m *EmailMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerID returns the "owner" edge ID in the mutation.
+func (m *EmailMutation) OwnerID() (id uint64, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *EmailMutation) OwnerIDs() (ids []uint64) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *EmailMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
 // Where appends a list predicates to the EmailMutation builder.
 func (m *EmailMutation) Where(ps ...predicate.Email) {
 	m.predicates = append(m.predicates, ps...)
@@ -752,19 +1916,28 @@ func (m *EmailMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EmailMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.owner != nil {
+		edges = append(edges, email.EdgeOwner)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *EmailMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case email.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EmailMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -776,25 +1949,42 @@ func (m *EmailMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EmailMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedowner {
+		edges = append(edges, email.EdgeOwner)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *EmailMutation) EdgeCleared(name string) bool {
+	switch name {
+	case email.EdgeOwner:
+		return m.clearedowner
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *EmailMutation) ClearEdge(name string) error {
+	switch name {
+	case email.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	}
 	return fmt.Errorf("unknown Email unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *EmailMutation) ResetEdge(name string) error {
+	switch name {
+	case email.EdgeOwner:
+		m.ResetOwner()
+		return nil
+	}
 	return fmt.Errorf("unknown Email edge %s", name)
 }
 
@@ -807,8 +1997,6 @@ type ProductMutation struct {
 	created_at        *time.Time
 	updated_at        *time.Time
 	name              *string
-	categoryID        *uint64
-	addcategoryID     *int64
 	title             *string
 	info              *string
 	price             *int64
@@ -817,6 +2005,11 @@ type ProductMutation struct {
 	discount_price    *int64
 	adddiscount_price *int64
 	clearedFields     map[string]struct{}
+	carousels         map[uint64]struct{}
+	removedcarousels  map[uint64]struct{}
+	clearedcarousels  bool
+	category          *uint64
+	clearedcategory   bool
 	done              bool
 	oldValue          func(context.Context) (*Product, error)
 	predicates        []predicate.Product
@@ -1036,13 +2229,12 @@ func (m *ProductMutation) ResetName() {
 
 // SetCategoryID sets the "categoryID" field.
 func (m *ProductMutation) SetCategoryID(u uint64) {
-	m.categoryID = &u
-	m.addcategoryID = nil
+	m.category = &u
 }
 
 // CategoryID returns the value of the "categoryID" field in the mutation.
 func (m *ProductMutation) CategoryID() (r uint64, exists bool) {
-	v := m.categoryID
+	v := m.category
 	if v == nil {
 		return
 	}
@@ -1066,28 +2258,22 @@ func (m *ProductMutation) OldCategoryID(ctx context.Context) (v uint64, err erro
 	return oldValue.CategoryID, nil
 }
 
-// AddCategoryID adds u to the "categoryID" field.
-func (m *ProductMutation) AddCategoryID(u int64) {
-	if m.addcategoryID != nil {
-		*m.addcategoryID += u
-	} else {
-		m.addcategoryID = &u
-	}
+// ClearCategoryID clears the value of the "categoryID" field.
+func (m *ProductMutation) ClearCategoryID() {
+	m.category = nil
+	m.clearedFields[product.FieldCategoryID] = struct{}{}
 }
 
-// AddedCategoryID returns the value that was added to the "categoryID" field in this mutation.
-func (m *ProductMutation) AddedCategoryID() (r int64, exists bool) {
-	v := m.addcategoryID
-	if v == nil {
-		return
-	}
-	return *v, true
+// CategoryIDCleared returns if the "categoryID" field was cleared in this mutation.
+func (m *ProductMutation) CategoryIDCleared() bool {
+	_, ok := m.clearedFields[product.FieldCategoryID]
+	return ok
 }
 
 // ResetCategoryID resets all changes to the "categoryID" field.
 func (m *ProductMutation) ResetCategoryID() {
-	m.categoryID = nil
-	m.addcategoryID = nil
+	m.category = nil
+	delete(m.clearedFields, product.FieldCategoryID)
 }
 
 // SetTitle sets the "title" field.
@@ -1324,6 +2510,87 @@ func (m *ProductMutation) ResetDiscountPrice() {
 	delete(m.clearedFields, product.FieldDiscountPrice)
 }
 
+// AddCarouselIDs adds the "carousels" edge to the Carousel entity by ids.
+func (m *ProductMutation) AddCarouselIDs(ids ...uint64) {
+	if m.carousels == nil {
+		m.carousels = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		m.carousels[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCarousels clears the "carousels" edge to the Carousel entity.
+func (m *ProductMutation) ClearCarousels() {
+	m.clearedcarousels = true
+}
+
+// CarouselsCleared reports if the "carousels" edge to the Carousel entity was cleared.
+func (m *ProductMutation) CarouselsCleared() bool {
+	return m.clearedcarousels
+}
+
+// RemoveCarouselIDs removes the "carousels" edge to the Carousel entity by IDs.
+func (m *ProductMutation) RemoveCarouselIDs(ids ...uint64) {
+	if m.removedcarousels == nil {
+		m.removedcarousels = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		delete(m.carousels, ids[i])
+		m.removedcarousels[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCarousels returns the removed IDs of the "carousels" edge to the Carousel entity.
+func (m *ProductMutation) RemovedCarouselsIDs() (ids []uint64) {
+	for id := range m.removedcarousels {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CarouselsIDs returns the "carousels" edge IDs in the mutation.
+func (m *ProductMutation) CarouselsIDs() (ids []uint64) {
+	for id := range m.carousels {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCarousels resets all changes to the "carousels" edge.
+func (m *ProductMutation) ResetCarousels() {
+	m.carousels = nil
+	m.clearedcarousels = false
+	m.removedcarousels = nil
+}
+
+// ClearCategory clears the "category" edge to the Category entity.
+func (m *ProductMutation) ClearCategory() {
+	m.clearedcategory = true
+	m.clearedFields[product.FieldCategoryID] = struct{}{}
+}
+
+// CategoryCleared reports if the "category" edge to the Category entity was cleared.
+func (m *ProductMutation) CategoryCleared() bool {
+	return m.CategoryIDCleared() || m.clearedcategory
+}
+
+// CategoryIDs returns the "category" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CategoryID instead. It exists only for internal usage by the builders.
+func (m *ProductMutation) CategoryIDs() (ids []uint64) {
+	if id := m.category; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCategory resets all changes to the "category" edge.
+func (m *ProductMutation) ResetCategory() {
+	m.category = nil
+	m.clearedcategory = false
+}
+
 // Where appends a list predicates to the ProductMutation builder.
 func (m *ProductMutation) Where(ps ...predicate.Product) {
 	m.predicates = append(m.predicates, ps...)
@@ -1368,7 +2635,7 @@ func (m *ProductMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, product.FieldName)
 	}
-	if m.categoryID != nil {
+	if m.category != nil {
 		fields = append(fields, product.FieldCategoryID)
 	}
 	if m.title != nil {
@@ -1519,9 +2786,6 @@ func (m *ProductMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *ProductMutation) AddedFields() []string {
 	var fields []string
-	if m.addcategoryID != nil {
-		fields = append(fields, product.FieldCategoryID)
-	}
 	if m.addprice != nil {
 		fields = append(fields, product.FieldPrice)
 	}
@@ -1536,8 +2800,6 @@ func (m *ProductMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *ProductMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case product.FieldCategoryID:
-		return m.AddedCategoryID()
 	case product.FieldPrice:
 		return m.AddedPrice()
 	case product.FieldDiscountPrice:
@@ -1551,13 +2813,6 @@ func (m *ProductMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ProductMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case product.FieldCategoryID:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCategoryID(v)
-		return nil
 	case product.FieldPrice:
 		v, ok := value.(int64)
 		if !ok {
@@ -1580,6 +2835,9 @@ func (m *ProductMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *ProductMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(product.FieldCategoryID) {
+		fields = append(fields, product.FieldCategoryID)
+	}
 	if m.FieldCleared(product.FieldDiscountPrice) {
 		fields = append(fields, product.FieldDiscountPrice)
 	}
@@ -1597,6 +2855,9 @@ func (m *ProductMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ProductMutation) ClearField(name string) error {
 	switch name {
+	case product.FieldCategoryID:
+		m.ClearCategoryID()
+		return nil
 	case product.FieldDiscountPrice:
 		m.ClearDiscountPrice()
 		return nil
@@ -1641,49 +2902,103 @@ func (m *ProductMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProductMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.carousels != nil {
+		edges = append(edges, product.EdgeCarousels)
+	}
+	if m.category != nil {
+		edges = append(edges, product.EdgeCategory)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ProductMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case product.EdgeCarousels:
+		ids := make([]ent.Value, 0, len(m.carousels))
+		for id := range m.carousels {
+			ids = append(ids, id)
+		}
+		return ids
+	case product.EdgeCategory:
+		if id := m.category; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProductMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedcarousels != nil {
+		edges = append(edges, product.EdgeCarousels)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ProductMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case product.EdgeCarousels:
+		ids := make([]ent.Value, 0, len(m.removedcarousels))
+		for id := range m.removedcarousels {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProductMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedcarousels {
+		edges = append(edges, product.EdgeCarousels)
+	}
+	if m.clearedcategory {
+		edges = append(edges, product.EdgeCategory)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ProductMutation) EdgeCleared(name string) bool {
+	switch name {
+	case product.EdgeCarousels:
+		return m.clearedcarousels
+	case product.EdgeCategory:
+		return m.clearedcategory
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ProductMutation) ClearEdge(name string) error {
+	switch name {
+	case product.EdgeCategory:
+		m.ClearCategory()
+		return nil
+	}
 	return fmt.Errorf("unknown Product unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ProductMutation) ResetEdge(name string) error {
+	switch name {
+	case product.EdgeCarousels:
+		m.ResetCarousels()
+		return nil
+	case product.EdgeCategory:
+		m.ResetCategory()
+		return nil
+	}
 	return fmt.Errorf("unknown Product edge %s", name)
 }
 
@@ -1705,6 +3020,9 @@ type UserMutation struct {
 	github_id     *uint64
 	addgithub_id  *int64
 	clearedFields map[string]struct{}
+	emails        map[uint64]struct{}
+	removedemails map[uint64]struct{}
+	clearedemails bool
 	done          bool
 	oldValue      func(context.Context) (*User, error)
 	predicates    []predicate.User
@@ -2245,6 +3563,60 @@ func (m *UserMutation) ResetGithubID() {
 	delete(m.clearedFields, user.FieldGithubID)
 }
 
+// AddEmailIDs adds the "emails" edge to the Email entity by ids.
+func (m *UserMutation) AddEmailIDs(ids ...uint64) {
+	if m.emails == nil {
+		m.emails = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		m.emails[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEmails clears the "emails" edge to the Email entity.
+func (m *UserMutation) ClearEmails() {
+	m.clearedemails = true
+}
+
+// EmailsCleared reports if the "emails" edge to the Email entity was cleared.
+func (m *UserMutation) EmailsCleared() bool {
+	return m.clearedemails
+}
+
+// RemoveEmailIDs removes the "emails" edge to the Email entity by IDs.
+func (m *UserMutation) RemoveEmailIDs(ids ...uint64) {
+	if m.removedemails == nil {
+		m.removedemails = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		delete(m.emails, ids[i])
+		m.removedemails[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEmails returns the removed IDs of the "emails" edge to the Email entity.
+func (m *UserMutation) RemovedEmailsIDs() (ids []uint64) {
+	for id := range m.removedemails {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EmailsIDs returns the "emails" edge IDs in the mutation.
+func (m *UserMutation) EmailsIDs() (ids []uint64) {
+	for id := range m.emails {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEmails resets all changes to the "emails" edge.
+func (m *UserMutation) ResetEmails() {
+	m.emails = nil
+	m.clearedemails = false
+	m.removedemails = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -2574,48 +3946,84 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.emails != nil {
+		edges = append(edges, user.EdgeEmails)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *UserMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case user.EdgeEmails:
+		ids := make([]ent.Value, 0, len(m.emails))
+		for id := range m.emails {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedemails != nil {
+		edges = append(edges, user.EdgeEmails)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case user.EdgeEmails:
+		ids := make([]ent.Value, 0, len(m.removedemails))
+		for id := range m.removedemails {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedemails {
+		edges = append(edges, user.EdgeEmails)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *UserMutation) EdgeCleared(name string) bool {
+	switch name {
+	case user.EdgeEmails:
+		return m.clearedemails
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *UserMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown User unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
+	switch name {
+	case user.EdgeEmails:
+		m.ResetEmails()
+		return nil
+	}
 	return fmt.Errorf("unknown User edge %s", name)
 }

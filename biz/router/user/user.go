@@ -22,6 +22,8 @@ func Register(r *server.Hertz) {
 		{
 			_v1 := _api.Group("/v1", _v1Mw()...)
 			_v1.GET("/captcha", append(_captchaMw(), user.Captcha)...)
+			_v1.GET("/carousels", append(_listcarouselsMw(), user.ListCarousels)...)
+			_v1.GET("/categories", append(_listcategoryMw(), user.ListCategory)...)
 			_v1.GET("/product", append(_showproductMw(), user.ShowProduct)...)
 			_v1.GET("/products", append(_listproductMw(), user.ListProduct)...)
 			_v1.POST("/register", append(_registerMw(), user.Register)...)
@@ -40,6 +42,8 @@ func Register(r *server.Hertz) {
 		}
 		{
 			_v2 := _api.Group("/v2", _v2Mw()...)
+			_v2.POST("/carousels", append(_createcarouselMw(), user.CreateCarousel)...)
+			_v2.POST("/categories", append(_createcategoryMw(), user.CreateCategory)...)
 			_v2.DELETE("/product", append(_deleteproductMw(), user.DeleteProduct)...)
 			_v2.PUT("/product", append(_updateproductMw(), user.UpdateProduct)...)
 			_v2.POST("/products", append(_createproductMw(), user.CreateProduct)...)

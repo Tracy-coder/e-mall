@@ -35,8 +35,29 @@ type User struct {
 	// avatar | 头像路径
 	Avatar string `json:"avatar,omitempty"`
 	// github id | 关联的Github ID
-	GithubID     uint64 `json:"github_id,omitempty"`
+	GithubID uint64 `json:"github_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Emails holds the value of the emails edge.
+	Emails []*Email `json:"emails,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// EmailsOrErr returns the Emails value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) EmailsOrErr() ([]*Email, error) {
+	if e.loadedTypes[0] {
+		return e.Emails, nil
+	}
+	return nil, &NotLoadedError{edge: "emails"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -136,6 +157,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
+}
+
+// QueryEmails queries the "emails" edge of the User entity.
+func (u *User) QueryEmails() *EmailQuery {
+	return NewUserClient(u.config).QueryEmails(u)
 }
 
 // Update returns a builder for updating this User.

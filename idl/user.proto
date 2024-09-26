@@ -195,3 +195,54 @@ service product{
       option (api.delete) = "/api/v2/product";
     }
 }
+
+message CreateCategoryReq{
+  uint64 ID = 1;
+  string CategoryName = 2;
+}
+
+message CategoryInfo{
+  uint64 ID = 1;
+  string CategoryName = 2;
+  uint64 CreatedAt = 3;
+}
+
+message ListCategoryResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+    repeated CategoryInfo categories= 3;
+}
+service category{
+  rpc CreateCategory(CreateCategoryReq) returns(base.BaseResp){
+    option (api.post) = "/api/v2/categories";
+  }
+  rpc ListCategory(Empty)returns(ListCategoryResp){
+    option (api.get) = "/api/v1/categories";
+  }
+}
+
+message CarouselInfo{
+	uint64 ID = 1; 
+	string ImgPath = 2;
+	uint64  ProductID = 3;
+	uint64 CreatedAt = 4;
+}
+
+message ListCarouselResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+    repeated CarouselInfo carousels = 3;
+}
+
+message CreateCarouselReq{
+  uint64 ProductID = 1;
+  string ImgPath = 2;
+}
+service carousel{
+  rpc CreateCarousel(CreateCarouselReq)returns(base.BaseResp){
+    option (api.post) = "/api/v2/carousels";
+  }
+  rpc ListCarousels(Empty)returns(ListCarouselResp){
+    option (api.get) = "/api/v1/carousels";
+  }
+}

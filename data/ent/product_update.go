@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 )
@@ -50,7 +52,6 @@ func (pu *ProductUpdate) SetNillableName(s *string) *ProductUpdate {
 
 // SetCategoryID sets the "categoryID" field.
 func (pu *ProductUpdate) SetCategoryID(u uint64) *ProductUpdate {
-	pu.mutation.ResetCategoryID()
 	pu.mutation.SetCategoryID(u)
 	return pu
 }
@@ -63,9 +64,9 @@ func (pu *ProductUpdate) SetNillableCategoryID(u *uint64) *ProductUpdate {
 	return pu
 }
 
-// AddCategoryID adds u to the "categoryID" field.
-func (pu *ProductUpdate) AddCategoryID(u int64) *ProductUpdate {
-	pu.mutation.AddCategoryID(u)
+// ClearCategoryID clears the value of the "categoryID" field.
+func (pu *ProductUpdate) ClearCategoryID() *ProductUpdate {
+	pu.mutation.ClearCategoryID()
 	return pu
 }
 
@@ -159,9 +160,56 @@ func (pu *ProductUpdate) ClearDiscountPrice() *ProductUpdate {
 	return pu
 }
 
+// AddCarouselIDs adds the "carousels" edge to the Carousel entity by IDs.
+func (pu *ProductUpdate) AddCarouselIDs(ids ...uint64) *ProductUpdate {
+	pu.mutation.AddCarouselIDs(ids...)
+	return pu
+}
+
+// AddCarousels adds the "carousels" edges to the Carousel entity.
+func (pu *ProductUpdate) AddCarousels(c ...*Carousel) *ProductUpdate {
+	ids := make([]uint64, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pu.AddCarouselIDs(ids...)
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (pu *ProductUpdate) SetCategory(c *Category) *ProductUpdate {
+	return pu.SetCategoryID(c.ID)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pu *ProductUpdate) Mutation() *ProductMutation {
 	return pu.mutation
+}
+
+// ClearCarousels clears all "carousels" edges to the Carousel entity.
+func (pu *ProductUpdate) ClearCarousels() *ProductUpdate {
+	pu.mutation.ClearCarousels()
+	return pu
+}
+
+// RemoveCarouselIDs removes the "carousels" edge to Carousel entities by IDs.
+func (pu *ProductUpdate) RemoveCarouselIDs(ids ...uint64) *ProductUpdate {
+	pu.mutation.RemoveCarouselIDs(ids...)
+	return pu
+}
+
+// RemoveCarousels removes "carousels" edges to Carousel entities.
+func (pu *ProductUpdate) RemoveCarousels(c ...*Carousel) *ProductUpdate {
+	ids := make([]uint64, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pu.RemoveCarouselIDs(ids...)
+}
+
+// ClearCategory clears the "category" edge to the Category entity.
+func (pu *ProductUpdate) ClearCategory() *ProductUpdate {
+	pu.mutation.ClearCategory()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -215,12 +263,6 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 	}
-	if value, ok := pu.mutation.CategoryID(); ok {
-		_spec.SetField(product.FieldCategoryID, field.TypeUint64, value)
-	}
-	if value, ok := pu.mutation.AddedCategoryID(); ok {
-		_spec.AddField(product.FieldCategoryID, field.TypeUint64, value)
-	}
 	if value, ok := pu.mutation.Title(); ok {
 		_spec.SetField(product.FieldTitle, field.TypeString, value)
 	}
@@ -244,6 +286,80 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pu.mutation.DiscountPriceCleared() {
 		_spec.ClearField(product.FieldDiscountPrice, field.TypeInt64)
+	}
+	if pu.mutation.CarouselsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CarouselsTable,
+			Columns: []string{product.CarouselsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carousel.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedCarouselsIDs(); len(nodes) > 0 && !pu.mutation.CarouselsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CarouselsTable,
+			Columns: []string{product.CarouselsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carousel.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.CarouselsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CarouselsTable,
+			Columns: []string{product.CarouselsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carousel.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -287,7 +403,6 @@ func (puo *ProductUpdateOne) SetNillableName(s *string) *ProductUpdateOne {
 
 // SetCategoryID sets the "categoryID" field.
 func (puo *ProductUpdateOne) SetCategoryID(u uint64) *ProductUpdateOne {
-	puo.mutation.ResetCategoryID()
 	puo.mutation.SetCategoryID(u)
 	return puo
 }
@@ -300,9 +415,9 @@ func (puo *ProductUpdateOne) SetNillableCategoryID(u *uint64) *ProductUpdateOne 
 	return puo
 }
 
-// AddCategoryID adds u to the "categoryID" field.
-func (puo *ProductUpdateOne) AddCategoryID(u int64) *ProductUpdateOne {
-	puo.mutation.AddCategoryID(u)
+// ClearCategoryID clears the value of the "categoryID" field.
+func (puo *ProductUpdateOne) ClearCategoryID() *ProductUpdateOne {
+	puo.mutation.ClearCategoryID()
 	return puo
 }
 
@@ -396,9 +511,56 @@ func (puo *ProductUpdateOne) ClearDiscountPrice() *ProductUpdateOne {
 	return puo
 }
 
+// AddCarouselIDs adds the "carousels" edge to the Carousel entity by IDs.
+func (puo *ProductUpdateOne) AddCarouselIDs(ids ...uint64) *ProductUpdateOne {
+	puo.mutation.AddCarouselIDs(ids...)
+	return puo
+}
+
+// AddCarousels adds the "carousels" edges to the Carousel entity.
+func (puo *ProductUpdateOne) AddCarousels(c ...*Carousel) *ProductUpdateOne {
+	ids := make([]uint64, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return puo.AddCarouselIDs(ids...)
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (puo *ProductUpdateOne) SetCategory(c *Category) *ProductUpdateOne {
+	return puo.SetCategoryID(c.ID)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (puo *ProductUpdateOne) Mutation() *ProductMutation {
 	return puo.mutation
+}
+
+// ClearCarousels clears all "carousels" edges to the Carousel entity.
+func (puo *ProductUpdateOne) ClearCarousels() *ProductUpdateOne {
+	puo.mutation.ClearCarousels()
+	return puo
+}
+
+// RemoveCarouselIDs removes the "carousels" edge to Carousel entities by IDs.
+func (puo *ProductUpdateOne) RemoveCarouselIDs(ids ...uint64) *ProductUpdateOne {
+	puo.mutation.RemoveCarouselIDs(ids...)
+	return puo
+}
+
+// RemoveCarousels removes "carousels" edges to Carousel entities.
+func (puo *ProductUpdateOne) RemoveCarousels(c ...*Carousel) *ProductUpdateOne {
+	ids := make([]uint64, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return puo.RemoveCarouselIDs(ids...)
+}
+
+// ClearCategory clears the "category" edge to the Category entity.
+func (puo *ProductUpdateOne) ClearCategory() *ProductUpdateOne {
+	puo.mutation.ClearCategory()
+	return puo
 }
 
 // Where appends a list predicates to the ProductUpdate builder.
@@ -482,12 +644,6 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 	}
-	if value, ok := puo.mutation.CategoryID(); ok {
-		_spec.SetField(product.FieldCategoryID, field.TypeUint64, value)
-	}
-	if value, ok := puo.mutation.AddedCategoryID(); ok {
-		_spec.AddField(product.FieldCategoryID, field.TypeUint64, value)
-	}
 	if value, ok := puo.mutation.Title(); ok {
 		_spec.SetField(product.FieldTitle, field.TypeString, value)
 	}
@@ -511,6 +667,80 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if puo.mutation.DiscountPriceCleared() {
 		_spec.ClearField(product.FieldDiscountPrice, field.TypeInt64)
+	}
+	if puo.mutation.CarouselsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CarouselsTable,
+			Columns: []string{product.CarouselsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carousel.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedCarouselsIDs(); len(nodes) > 0 && !puo.mutation.CarouselsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CarouselsTable,
+			Columns: []string{product.CarouselsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carousel.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.CarouselsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CarouselsTable,
+			Columns: []string{product.CarouselsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(carousel.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Product{config: puo.config}
 	_spec.Assign = _node.assignValues
