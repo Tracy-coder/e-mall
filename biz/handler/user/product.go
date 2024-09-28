@@ -83,7 +83,7 @@ func ShowProduct(ctx context.Context, c *app.RequestContext) {
 	if err != nil {
 		resp.ErrCode = base.ErrCode_CopierError
 		resp.ErrMsg = err.Error()
-		c.JSON(consts.StatusBadRequest, resp)
+		c.JSON(consts.StatusInternalServerError, resp)
 		return
 	}
 	resp.ErrCode = base.ErrCode_Success

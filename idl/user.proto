@@ -83,6 +83,16 @@ message VerifyEmailReq{
   uint64 email_id  = 1;
   string secret_code = 2;
 }
+
+message UploadAvatarReq{
+  string filename = 1;
+}
+message UploadAvatarResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  string put = 3;
+  string get = 4;
+}
 service user{
   rpc Register(UserRegisterReq) returns (base.BaseResp) {
     option (api.post) = "/api/v1/register";
@@ -111,6 +121,10 @@ service user{
 
   rpc VerifyEmail(VerifyEmailReq) returns(base.BaseResp){
     option (api.get) = "/api/v1/verify_email";
+  }
+
+  rpc UploadAvatar(UploadAvatarReq)returns(UploadAvatarResp){
+    option (api.post) = "/api/v1/user/upload_avatar";
   }
 }
 

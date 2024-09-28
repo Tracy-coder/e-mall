@@ -23,6 +23,7 @@ enum ErrCode {
   ListCategoryError = 16;
   CreateCarouselError = 17;
   ListCarouselError = 18;
+  UploadAvatarError = 19;
 }
 
 

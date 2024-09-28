@@ -248,3 +248,33 @@ func VerifyEmail(ctx context.Context, c *app.RequestContext) {
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
 }
+
+// UploadAvatar .
+// @router /api/v1/user/upload_avatar [POST]
+func UploadAvatar(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req user.UploadAvatarReq
+	resp := new(user.UploadAvatarResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	res, err := logic.NewOSS().UploadAvatar(ctx, "avatar", req.Filename)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_UploadAvatarError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	err = copier.Copy(resp, res)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CopierError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+	c.JSON(consts.StatusOK, resp)
+}

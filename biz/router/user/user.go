@@ -37,6 +37,7 @@ func Register(r *server.Hertz) {
 			{
 				_user := _v1.Group("/user", _userMw()...)
 				_user.GET("/info", append(_userinfoMw(), user.UserInfo)...)
+				_user.POST("/upload_avatar", append(_uploadavatarMw(), user.UploadAvatar)...)
 				_user.POST("/valid_email", append(_validemailMw(), user.ValidEmail)...)
 			}
 		}

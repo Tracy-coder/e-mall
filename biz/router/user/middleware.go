@@ -123,3 +123,8 @@ func _createcarouselMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _uploadavatarMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
