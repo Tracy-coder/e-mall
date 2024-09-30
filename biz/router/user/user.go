@@ -25,6 +25,9 @@ func Register(r *server.Hertz) {
 			_v1.GET("/carousels", append(_listcarouselsMw(), user.ListCarousels)...)
 			_v1.GET("/categories", append(_listcategoryMw(), user.ListCategory)...)
 			_v1.GET("/product", append(_showproductMw(), user.ShowProduct)...)
+			_product := _v1.Group("/product", _productMw()...)
+			_product.GET("/img", append(_showproductimgMw(), user.ShowProductImg)...)
+			_product.GET("/rankings", append(_showproductrankingsMw(), user.ShowProductRankings)...)
 			_v1.GET("/products", append(_listproductMw(), user.ListProduct)...)
 			_v1.POST("/register", append(_registerMw(), user.Register)...)
 			_v1.GET("/verify_email", append(_verifyemailMw(), user.VerifyEmail)...)
@@ -46,6 +49,8 @@ func Register(r *server.Hertz) {
 			_v2.POST("/carousels", append(_createcarouselMw(), user.CreateCarousel)...)
 			_v2.POST("/categories", append(_createcategoryMw(), user.CreateCategory)...)
 			_v2.DELETE("/product", append(_deleteproductMw(), user.DeleteProduct)...)
+			_product0 := _v2.Group("/product", _product0Mw()...)
+			_product0.POST("/img", append(_createproductimgMw(), user.CreateProductImg)...)
 			_v2.PUT("/product", append(_updateproductMw(), user.UpdateProduct)...)
 			_v2.POST("/products", append(_createproductMw(), user.CreateProduct)...)
 		}

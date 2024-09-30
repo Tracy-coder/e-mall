@@ -195,3 +195,112 @@ func DeleteProduct(ctx context.Context, c *app.RequestContext) {
 	resp.ErrMsg = "success"
 	c.JSON(consts.StatusOK, resp)
 }
+
+// ShowProductImg .
+// @router /api/v1/product/img [GET]
+func ShowProductImg(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req pb.ShowProductImgReq
+	resp := new(pb.ShowProductImgResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	info, err := logic.NewProduct(data.Default()).ShowProductImg(ctx, req.Id)
+
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CreateProductError
+		resp.ErrMsg = err.Error()
+		return
+	}
+	productInfo := make([]*pb.ProductImg, len(info))
+	err = copier.Copy(&productInfo, &info)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CopierError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+	resp.ErrCode = base.ErrCode_Success
+	resp.ErrMsg = "success"
+	resp.Info = productInfo
+
+	c.JSON(consts.StatusOK, resp)
+}
+
+// CreateProductImg .
+// @router /api/v2/product/img [POST]
+func CreateProductImg(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req pb.CreateProductImgReq
+	resp := new(pb.CreateProductImgResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_ArgumentError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	var createProductImgReq domain.CreateProductImgReq
+	err = copier.Copy(&createProductImgReq, &req)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CopierError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	productImg, err := logic.NewProduct(data.Default()).CreateProductImg(ctx, createProductImgReq)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CreateProductImgError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
+		return
+	}
+	productImgInfo := new(pb.ProductImg)
+	err = copier.Copy(productImgInfo, productImg)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CopierError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	resp.ErrCode = base.ErrCode_Success
+	resp.ErrMsg = "success"
+	resp.Info = productImgInfo
+	c.JSON(consts.StatusOK, resp)
+}
+
+// ShowProductRankings .
+// @router /api/v1/product/rankings [GET]
+func ShowProductRankings(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req pb.Empty
+	resp := new(pb.ShowProductRankingsResp)
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
+	res, err := logic.NewProduct(data.Default()).ShowProductRankings(ctx)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_ListProductError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	productsInfo := make([]*pb.ProductInfo, len(res))
+	err = copier.Copy(&productsInfo, &res)
+	if err != nil {
+		resp.ErrCode = base.ErrCode_CopierError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusBadRequest, resp)
+		return
+	}
+	resp.Info = productsInfo
+	resp.ErrCode = base.ErrCode_Success
+	resp.ErrMsg = "success"
+	c.JSON(consts.StatusOK, resp)
+}

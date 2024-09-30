@@ -8,6 +8,9 @@ type Product interface {
 	ListProduct(ctx context.Context, req ListProductReq) ([]*ProductInfo, error)
 	UpdateProduct(ctx context.Context, req UpdateProductReq) error
 	DeleteProduct(ctx context.Context, id uint64) error
+	CreateProductImg(ctx context.Context, req CreateProductImgReq) (*ProductImg, error)
+	ShowProductImg(ctx context.Context, id uint64) ([]*ProductImg, error)
+	ShowProductRankings(ctx context.Context) ([]*ProductInfo, error)
 }
 
 type CreateProductReq struct {
@@ -44,4 +47,16 @@ type ProductInfo struct {
 	View          uint64
 	CreatedAt     uint64
 	Price         int64
+}
+
+type CreateProductImgReq struct {
+	ProductID uint64
+	ImgPath   string
+}
+
+type ProductImg struct {
+	ID        uint64
+	ProductID uint64
+	ImgPath   string
+	CreatedAt uint64
 }

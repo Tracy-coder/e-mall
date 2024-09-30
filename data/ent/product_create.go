@@ -13,6 +13,7 @@ import (
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
+	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 )
 
 // ProductCreate is the builder for creating a Product entity.
@@ -88,12 +89,6 @@ func (pc *ProductCreate) SetPrice(i int64) *ProductCreate {
 	return pc
 }
 
-// SetImgPath sets the "img_path" field.
-func (pc *ProductCreate) SetImgPath(s string) *ProductCreate {
-	pc.mutation.SetImgPath(s)
-	return pc
-}
-
 // SetDiscountPrice sets the "discount_price" field.
 func (pc *ProductCreate) SetDiscountPrice(i int64) *ProductCreate {
 	pc.mutation.SetDiscountPrice(i)
@@ -132,6 +127,21 @@ func (pc *ProductCreate) AddCarousels(c ...*Carousel) *ProductCreate {
 // SetCategory sets the "category" edge to the Category entity.
 func (pc *ProductCreate) SetCategory(c *Category) *ProductCreate {
 	return pc.SetCategoryID(c.ID)
+}
+
+// AddProductimgIDs adds the "productimgs" edge to the ProductImg entity by IDs.
+func (pc *ProductCreate) AddProductimgIDs(ids ...uint64) *ProductCreate {
+	pc.mutation.AddProductimgIDs(ids...)
+	return pc
+}
+
+// AddProductimgs adds the "productimgs" edges to the ProductImg entity.
+func (pc *ProductCreate) AddProductimgs(p ...*ProductImg) *ProductCreate {
+	ids := make([]uint64, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pc.AddProductimgIDs(ids...)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -199,9 +209,6 @@ func (pc *ProductCreate) check() error {
 	if _, ok := pc.mutation.Price(); !ok {
 		return &ValidationError{Name: "price", err: errors.New(`ent: missing required field "Product.price"`)}
 	}
-	if _, ok := pc.mutation.ImgPath(); !ok {
-		return &ValidationError{Name: "img_path", err: errors.New(`ent: missing required field "Product.img_path"`)}
-	}
 	return nil
 }
 
@@ -258,10 +265,6 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_spec.SetField(product.FieldPrice, field.TypeInt64, value)
 		_node.Price = value
 	}
-	if value, ok := pc.mutation.ImgPath(); ok {
-		_spec.SetField(product.FieldImgPath, field.TypeString, value)
-		_node.ImgPath = value
-	}
 	if value, ok := pc.mutation.DiscountPrice(); ok {
 		_spec.SetField(product.FieldDiscountPrice, field.TypeInt64, value)
 		_node.DiscountPrice = value
@@ -297,6 +300,22 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CategoryID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.ProductimgsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.ProductimgsTable,
+			Columns: []string{product.ProductimgsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

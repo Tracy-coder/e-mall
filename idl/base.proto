@@ -24,6 +24,7 @@ enum ErrCode {
   CreateCarouselError = 17;
   ListCarouselError = 18;
   UploadAvatarError = 19;
+  CreateProductImgError = 20;
 }
 
 

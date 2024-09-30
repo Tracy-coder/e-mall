@@ -152,6 +152,7 @@ message CreateProductResp{
     base.ErrCode errCode = 1;
     string errMsg = 2;
     ProductInfo product = 3; 
+
 }
 
 message ShowProductReq{
@@ -190,6 +191,39 @@ message UpdateProductReq{
 message DeleteProductReq{
   uint64 id = 1;
 }
+
+message ShowProductImgReq{
+  uint64 id = 1;
+}
+
+message ProductImg{
+  uint64 ID = 1;
+  uint64 ProductID = 2;
+  string ImgPath = 3;
+  uint64 CreatedAt = 4;
+}
+message ShowProductImgResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+  repeated ProductImg info = 3;
+}
+
+message CreateProductImgReq{
+  uint64 ProductID = 1;
+  string ImgPath = 2;
+}
+
+message CreateProductImgResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+  ProductImg info = 3;
+}
+
+message ShowProductRankingsResp{
+    base.ErrCode errCode = 1;
+    string errMsg = 2;
+    repeated ProductInfo info = 3;
+}
 service product{
     rpc CreateProduct(CreateProductReq)returns(CreateProductResp){
       option (api.post) = "/api/v2/products";
@@ -207,6 +241,15 @@ service product{
     }
     rpc DeleteProduct(DeleteProductReq)returns(base.BaseResp){
       option (api.delete) = "/api/v2/product";
+    }
+    rpc ShowProductImg(ShowProductImgReq)returns(ShowProductImgResp){
+      option (api.get) = "/api/v1/product/img";
+    }
+    rpc CreateProductImg(CreateProductImgReq)returns(CreateProductImgResp){
+      option (api.post) = "/api/v2/product/img";
+    }
+    rpc ShowProductRankings(Empty)returns(ShowProductRankingsResp){
+      option (api.get) = "/api/v1/product/rankings";
     }
 }
 

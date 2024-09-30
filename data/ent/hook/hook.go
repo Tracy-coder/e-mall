@@ -57,6 +57,18 @@ func (f ProductFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProductMutation", m)
 }
 
+// The ProductImgFunc type is an adapter to allow the use of ordinary
+// function as ProductImg mutator.
+type ProductImgFunc func(context.Context, *ent.ProductImgMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProductImgFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProductImgMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProductImgMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

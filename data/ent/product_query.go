@@ -16,17 +16,19 @@ import (
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
+	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 )
 
 // ProductQuery is the builder for querying Product entities.
 type ProductQuery struct {
 	config
-	ctx           *QueryContext
-	order         []product.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Product
-	withCarousels *CarouselQuery
-	withCategory  *CategoryQuery
+	ctx             *QueryContext
+	order           []product.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.Product
+	withCarousels   *CarouselQuery
+	withCategory    *CategoryQuery
+	withProductimgs *ProductImgQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (pq *ProductQuery) QueryCategory() *CategoryQuery {
 			sqlgraph.From(product.Table, product.FieldID, selector),
 			sqlgraph.To(category.Table, category.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, product.CategoryTable, product.CategoryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryProductimgs chains the current query on the "productimgs" edge.
+func (pq *ProductQuery) QueryProductimgs() *ProductImgQuery {
+	query := (&ProductImgClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(productimg.Table, productimg.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.ProductimgsTable, product.ProductimgsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +318,14 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		return nil
 	}
 	return &ProductQuery{
-		config:        pq.config,
-		ctx:           pq.ctx.Clone(),
-		order:         append([]product.OrderOption{}, pq.order...),
-		inters:        append([]Interceptor{}, pq.inters...),
-		predicates:    append([]predicate.Product{}, pq.predicates...),
-		withCarousels: pq.withCarousels.Clone(),
-		withCategory:  pq.withCategory.Clone(),
+		config:          pq.config,
+		ctx:             pq.ctx.Clone(),
+		order:           append([]product.OrderOption{}, pq.order...),
+		inters:          append([]Interceptor{}, pq.inters...),
+		predicates:      append([]predicate.Product{}, pq.predicates...),
+		withCarousels:   pq.withCarousels.Clone(),
+		withCategory:    pq.withCategory.Clone(),
+		withProductimgs: pq.withProductimgs.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -326,6 +351,17 @@ func (pq *ProductQuery) WithCategory(opts ...func(*CategoryQuery)) *ProductQuery
 		opt(query)
 	}
 	pq.withCategory = query
+	return pq
+}
+
+// WithProductimgs tells the query-builder to eager-load the nodes that are connected to
+// the "productimgs" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithProductimgs(opts ...func(*ProductImgQuery)) *ProductQuery {
+	query := (&ProductImgClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withProductimgs = query
 	return pq
 }
 
@@ -407,9 +443,10 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	var (
 		nodes       = []*Product{}
 		_spec       = pq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			pq.withCarousels != nil,
 			pq.withCategory != nil,
+			pq.withProductimgs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -440,6 +477,13 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	if query := pq.withCategory; query != nil {
 		if err := pq.loadCategory(ctx, query, nodes, nil,
 			func(n *Product, e *Category) { n.Edges.Category = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withProductimgs; query != nil {
+		if err := pq.loadProductimgs(ctx, query, nodes,
+			func(n *Product) { n.Edges.Productimgs = []*ProductImg{} },
+			func(n *Product, e *ProductImg) { n.Edges.Productimgs = append(n.Edges.Productimgs, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -502,6 +546,36 @@ func (pq *ProductQuery) loadCategory(ctx context.Context, query *CategoryQuery, 
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (pq *ProductQuery) loadProductimgs(ctx context.Context, query *ProductImgQuery, nodes []*Product, init func(*Product), assign func(*Product, *ProductImg)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uint64]*Product)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(productimg.FieldProductID)
+	}
+	query.Where(predicate.ProductImg(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(product.ProductimgsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProductID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "productID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

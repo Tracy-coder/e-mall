@@ -28,14 +28,14 @@ const (
 	FieldInfo = "info"
 	// FieldPrice holds the string denoting the price field in the database.
 	FieldPrice = "price"
-	// FieldImgPath holds the string denoting the img_path field in the database.
-	FieldImgPath = "img_path"
 	// FieldDiscountPrice holds the string denoting the discount_price field in the database.
 	FieldDiscountPrice = "discount_price"
 	// EdgeCarousels holds the string denoting the carousels edge name in mutations.
 	EdgeCarousels = "carousels"
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"
+	// EdgeProductimgs holds the string denoting the productimgs edge name in mutations.
+	EdgeProductimgs = "productimgs"
 	// Table holds the table name of the product in the database.
 	Table = "products"
 	// CarouselsTable is the table that holds the carousels relation/edge.
@@ -52,6 +52,13 @@ const (
 	CategoryInverseTable = "categories"
 	// CategoryColumn is the table column denoting the category relation/edge.
 	CategoryColumn = "category_id"
+	// ProductimgsTable is the table that holds the productimgs relation/edge.
+	ProductimgsTable = "product_imgs"
+	// ProductimgsInverseTable is the table name for the ProductImg entity.
+	// It exists in this package in order to avoid circular dependency with the "productimg" package.
+	ProductimgsInverseTable = "product_imgs"
+	// ProductimgsColumn is the table column denoting the productimgs relation/edge.
+	ProductimgsColumn = "product_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -64,7 +71,6 @@ var Columns = []string{
 	FieldTitle,
 	FieldInfo,
 	FieldPrice,
-	FieldImgPath,
 	FieldDiscountPrice,
 }
 
@@ -130,11 +136,6 @@ func ByPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPrice, opts...).ToFunc()
 }
 
-// ByImgPath orders the results by the img_path field.
-func ByImgPath(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldImgPath, opts...).ToFunc()
-}
-
 // ByDiscountPrice orders the results by the discount_price field.
 func ByDiscountPrice(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDiscountPrice, opts...).ToFunc()
@@ -160,6 +161,20 @@ func ByCategoryField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCategoryStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByProductimgsCount orders the results by productimgs count.
+func ByProductimgsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newProductimgsStep(), opts...)
+	}
+}
+
+// ByProductimgs orders the results by productimgs terms.
+func ByProductimgs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProductimgsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCarouselsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -172,5 +187,12 @@ func newCategoryStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CategoryInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CategoryTable, CategoryColumn),
+	)
+}
+func newProductimgsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProductimgsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ProductimgsTable, ProductimgsColumn),
 	)
 }

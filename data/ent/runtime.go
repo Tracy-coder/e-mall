@@ -9,6 +9,7 @@ import (
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
+	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 	"github.com/Tracy-coder/e-mall/data/ent/schema"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
@@ -84,6 +85,21 @@ func init() {
 	product.DefaultUpdatedAt = productDescUpdatedAt.Default.(func() time.Time)
 	// product.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	product.UpdateDefaultUpdatedAt = productDescUpdatedAt.UpdateDefault.(func() time.Time)
+	productimgMixin := schema.ProductImg{}.Mixin()
+	productimgMixinFields0 := productimgMixin[0].Fields()
+	_ = productimgMixinFields0
+	productimgFields := schema.ProductImg{}.Fields()
+	_ = productimgFields
+	// productimgDescCreatedAt is the schema descriptor for created_at field.
+	productimgDescCreatedAt := productimgMixinFields0[1].Descriptor()
+	// productimg.DefaultCreatedAt holds the default value on creation for the created_at field.
+	productimg.DefaultCreatedAt = productimgDescCreatedAt.Default.(func() time.Time)
+	// productimgDescUpdatedAt is the schema descriptor for updated_at field.
+	productimgDescUpdatedAt := productimgMixinFields0[2].Descriptor()
+	// productimg.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	productimg.DefaultUpdatedAt = productimgDescUpdatedAt.Default.(func() time.Time)
+	// productimg.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	productimg.UpdateDefaultUpdatedAt = productimgDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

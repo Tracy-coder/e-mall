@@ -90,11 +90,6 @@ func Price(v int64) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldPrice, v))
 }
 
-// ImgPath applies equality check predicate on the "img_path" field. It's identical to ImgPathEQ.
-func ImgPath(v string) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldImgPath, v))
-}
-
 // DiscountPrice applies equality check predicate on the "discount_price" field. It's identical to DiscountPriceEQ.
 func DiscountPrice(v int64) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldDiscountPrice, v))
@@ -445,71 +440,6 @@ func PriceLTE(v int64) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldPrice, v))
 }
 
-// ImgPathEQ applies the EQ predicate on the "img_path" field.
-func ImgPathEQ(v string) predicate.Product {
-	return predicate.Product(sql.FieldEQ(FieldImgPath, v))
-}
-
-// ImgPathNEQ applies the NEQ predicate on the "img_path" field.
-func ImgPathNEQ(v string) predicate.Product {
-	return predicate.Product(sql.FieldNEQ(FieldImgPath, v))
-}
-
-// ImgPathIn applies the In predicate on the "img_path" field.
-func ImgPathIn(vs ...string) predicate.Product {
-	return predicate.Product(sql.FieldIn(FieldImgPath, vs...))
-}
-
-// ImgPathNotIn applies the NotIn predicate on the "img_path" field.
-func ImgPathNotIn(vs ...string) predicate.Product {
-	return predicate.Product(sql.FieldNotIn(FieldImgPath, vs...))
-}
-
-// ImgPathGT applies the GT predicate on the "img_path" field.
-func ImgPathGT(v string) predicate.Product {
-	return predicate.Product(sql.FieldGT(FieldImgPath, v))
-}
-
-// ImgPathGTE applies the GTE predicate on the "img_path" field.
-func ImgPathGTE(v string) predicate.Product {
-	return predicate.Product(sql.FieldGTE(FieldImgPath, v))
-}
-
-// ImgPathLT applies the LT predicate on the "img_path" field.
-func ImgPathLT(v string) predicate.Product {
-	return predicate.Product(sql.FieldLT(FieldImgPath, v))
-}
-
-// ImgPathLTE applies the LTE predicate on the "img_path" field.
-func ImgPathLTE(v string) predicate.Product {
-	return predicate.Product(sql.FieldLTE(FieldImgPath, v))
-}
-
-// ImgPathContains applies the Contains predicate on the "img_path" field.
-func ImgPathContains(v string) predicate.Product {
-	return predicate.Product(sql.FieldContains(FieldImgPath, v))
-}
-
-// ImgPathHasPrefix applies the HasPrefix predicate on the "img_path" field.
-func ImgPathHasPrefix(v string) predicate.Product {
-	return predicate.Product(sql.FieldHasPrefix(FieldImgPath, v))
-}
-
-// ImgPathHasSuffix applies the HasSuffix predicate on the "img_path" field.
-func ImgPathHasSuffix(v string) predicate.Product {
-	return predicate.Product(sql.FieldHasSuffix(FieldImgPath, v))
-}
-
-// ImgPathEqualFold applies the EqualFold predicate on the "img_path" field.
-func ImgPathEqualFold(v string) predicate.Product {
-	return predicate.Product(sql.FieldEqualFold(FieldImgPath, v))
-}
-
-// ImgPathContainsFold applies the ContainsFold predicate on the "img_path" field.
-func ImgPathContainsFold(v string) predicate.Product {
-	return predicate.Product(sql.FieldContainsFold(FieldImgPath, v))
-}
-
 // DiscountPriceEQ applies the EQ predicate on the "discount_price" field.
 func DiscountPriceEQ(v int64) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldDiscountPrice, v))
@@ -598,6 +528,29 @@ func HasCategory() predicate.Product {
 func HasCategoryWith(preds ...predicate.Category) predicate.Product {
 	return predicate.Product(func(s *sql.Selector) {
 		step := newCategoryStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProductimgs applies the HasEdge predicate on the "productimgs" edge.
+func HasProductimgs() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProductimgsTable, ProductimgsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProductimgsWith applies the HasEdge predicate on the "productimgs" edge with a given conditions (other predicates).
+func HasProductimgsWith(preds ...predicate.ProductImg) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newProductimgsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

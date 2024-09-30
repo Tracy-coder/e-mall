@@ -128,3 +128,28 @@ func _uploadavatarMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _productMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showproductimgMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _product0Mw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createproductimgMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showproductrankingsMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

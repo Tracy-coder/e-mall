@@ -20,6 +20,8 @@ type Tx struct {
 	Email *EmailClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
+	// ProductImg is the client for interacting with the ProductImg builders.
+	ProductImg *ProductImgClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -157,6 +159,7 @@ func (tx *Tx) init() {
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Email = NewEmailClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
+	tx.ProductImg = NewProductImgClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
+	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
 
@@ -35,6 +36,8 @@ type Client struct {
 	Email *EmailClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
+	// ProductImg is the client for interacting with the ProductImg builders.
+	ProductImg *ProductImgClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -52,6 +55,7 @@ func (c *Client) init() {
 	c.Category = NewCategoryClient(c.config)
 	c.Email = NewEmailClient(c.config)
 	c.Product = NewProductClient(c.config)
+	c.ProductImg = NewProductImgClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -143,13 +147,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:      ctx,
-		config:   cfg,
-		Carousel: NewCarouselClient(cfg),
-		Category: NewCategoryClient(cfg),
-		Email:    NewEmailClient(cfg),
-		Product:  NewProductClient(cfg),
-		User:     NewUserClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Carousel:   NewCarouselClient(cfg),
+		Category:   NewCategoryClient(cfg),
+		Email:      NewEmailClient(cfg),
+		Product:    NewProductClient(cfg),
+		ProductImg: NewProductImgClient(cfg),
+		User:       NewUserClient(cfg),
 	}, nil
 }
 
@@ -167,13 +172,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:      ctx,
-		config:   cfg,
-		Carousel: NewCarouselClient(cfg),
-		Category: NewCategoryClient(cfg),
-		Email:    NewEmailClient(cfg),
-		Product:  NewProductClient(cfg),
-		User:     NewUserClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Carousel:   NewCarouselClient(cfg),
+		Category:   NewCategoryClient(cfg),
+		Email:      NewEmailClient(cfg),
+		Product:    NewProductClient(cfg),
+		ProductImg: NewProductImgClient(cfg),
+		User:       NewUserClient(cfg),
 	}, nil
 }
 
@@ -202,21 +208,21 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Carousel.Use(hooks...)
-	c.Category.Use(hooks...)
-	c.Email.Use(hooks...)
-	c.Product.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Carousel, c.Category, c.Email, c.Product, c.ProductImg, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Carousel.Intercept(interceptors...)
-	c.Category.Intercept(interceptors...)
-	c.Email.Intercept(interceptors...)
-	c.Product.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Carousel, c.Category, c.Email, c.Product, c.ProductImg, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -230,6 +236,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Email.mutate(ctx, m)
 	case *ProductMutation:
 		return c.Product.mutate(ctx, m)
+	case *ProductImgMutation:
+		return c.ProductImg.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -824,6 +832,22 @@ func (c *ProductClient) QueryCategory(pr *Product) *CategoryQuery {
 	return query
 }
 
+// QueryProductimgs queries the productimgs edge of a Product.
+func (c *ProductClient) QueryProductimgs(pr *Product) *ProductImgQuery {
+	query := (&ProductImgClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, id),
+			sqlgraph.To(productimg.Table, productimg.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.ProductimgsTable, product.ProductimgsColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProductClient) Hooks() []Hook {
 	return c.hooks.Product
@@ -846,6 +870,155 @@ func (c *ProductClient) mutate(ctx context.Context, m *ProductMutation) (Value, 
 		return (&ProductDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Product mutation op: %q", m.Op())
+	}
+}
+
+// ProductImgClient is a client for the ProductImg schema.
+type ProductImgClient struct {
+	config
+}
+
+// NewProductImgClient returns a client for the ProductImg from the given config.
+func NewProductImgClient(c config) *ProductImgClient {
+	return &ProductImgClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `productimg.Hooks(f(g(h())))`.
+func (c *ProductImgClient) Use(hooks ...Hook) {
+	c.hooks.ProductImg = append(c.hooks.ProductImg, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `productimg.Intercept(f(g(h())))`.
+func (c *ProductImgClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProductImg = append(c.inters.ProductImg, interceptors...)
+}
+
+// Create returns a builder for creating a ProductImg entity.
+func (c *ProductImgClient) Create() *ProductImgCreate {
+	mutation := newProductImgMutation(c.config, OpCreate)
+	return &ProductImgCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProductImg entities.
+func (c *ProductImgClient) CreateBulk(builders ...*ProductImgCreate) *ProductImgCreateBulk {
+	return &ProductImgCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProductImgClient) MapCreateBulk(slice any, setFunc func(*ProductImgCreate, int)) *ProductImgCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProductImgCreateBulk{err: fmt.Errorf("calling to ProductImgClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProductImgCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProductImgCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProductImg.
+func (c *ProductImgClient) Update() *ProductImgUpdate {
+	mutation := newProductImgMutation(c.config, OpUpdate)
+	return &ProductImgUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProductImgClient) UpdateOne(pi *ProductImg) *ProductImgUpdateOne {
+	mutation := newProductImgMutation(c.config, OpUpdateOne, withProductImg(pi))
+	return &ProductImgUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProductImgClient) UpdateOneID(id uint64) *ProductImgUpdateOne {
+	mutation := newProductImgMutation(c.config, OpUpdateOne, withProductImgID(id))
+	return &ProductImgUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProductImg.
+func (c *ProductImgClient) Delete() *ProductImgDelete {
+	mutation := newProductImgMutation(c.config, OpDelete)
+	return &ProductImgDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProductImgClient) DeleteOne(pi *ProductImg) *ProductImgDeleteOne {
+	return c.DeleteOneID(pi.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProductImgClient) DeleteOneID(id uint64) *ProductImgDeleteOne {
+	builder := c.Delete().Where(productimg.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProductImgDeleteOne{builder}
+}
+
+// Query returns a query builder for ProductImg.
+func (c *ProductImgClient) Query() *ProductImgQuery {
+	return &ProductImgQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProductImg},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProductImg entity by its id.
+func (c *ProductImgClient) Get(ctx context.Context, id uint64) (*ProductImg, error) {
+	return c.Query().Where(productimg.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProductImgClient) GetX(ctx context.Context, id uint64) *ProductImg {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProduct queries the product edge of a ProductImg.
+func (c *ProductImgClient) QueryProduct(pi *ProductImg) *ProductQuery {
+	query := (&ProductClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(productimg.Table, productimg.FieldID, id),
+			sqlgraph.To(product.Table, product.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, productimg.ProductTable, productimg.ProductColumn),
+		)
+		fromV = sqlgraph.Neighbors(pi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProductImgClient) Hooks() []Hook {
+	return c.hooks.ProductImg
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProductImgClient) Interceptors() []Interceptor {
+	return c.inters.ProductImg
+}
+
+func (c *ProductImgClient) mutate(ctx context.Context, m *ProductImgMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProductImgCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProductImgUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProductImgUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProductImgDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProductImg mutation op: %q", m.Op())
 	}
 }
 
@@ -1001,9 +1174,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Carousel, Category, Email, Product, User []ent.Hook
+		Carousel, Category, Email, Product, ProductImg, User []ent.Hook
 	}
 	inters struct {
-		Carousel, Category, Email, Product, User []ent.Interceptor
+		Carousel, Category, Email, Product, ProductImg, User []ent.Interceptor
 	}
 )

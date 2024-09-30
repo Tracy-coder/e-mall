@@ -18,5 +18,8 @@ type Email func(*sql.Selector)
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)
 
+// ProductImg is the predicate function for productimg builders.
+type ProductImg func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

@@ -78,7 +78,6 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "info", Type: field.TypeString},
 		{Name: "price", Type: field.TypeInt64},
-		{Name: "img_path", Type: field.TypeString},
 		{Name: "discount_price", Type: field.TypeInt64, Nullable: true},
 		{Name: "category_id", Type: field.TypeUint64, Nullable: true},
 	}
@@ -90,8 +89,30 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "products_categories_product",
-				Columns:    []*schema.Column{ProductsColumns[9]},
+				Columns:    []*schema.Column{ProductsColumns[8]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ProductImgsColumns holds the columns for the "product_imgs" table.
+	ProductImgsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "img_path", Type: field.TypeString},
+		{Name: "product_id", Type: field.TypeUint64, Nullable: true},
+	}
+	// ProductImgsTable holds the schema information for the "product_imgs" table.
+	ProductImgsTable = &schema.Table{
+		Name:       "product_imgs",
+		Columns:    ProductImgsColumns,
+		PrimaryKey: []*schema.Column{ProductImgsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "product_imgs_products_productimgs",
+				Columns:    []*schema.Column{ProductImgsColumns[4]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -121,6 +142,7 @@ var (
 		CategoriesTable,
 		EmailsTable,
 		ProductsTable,
+		ProductImgsTable,
 		UsersTable,
 	}
 )
@@ -129,4 +151,5 @@ func init() {
 	CarouselsTable.ForeignKeys[0].RefTable = ProductsTable
 	EmailsTable.ForeignKeys[0].RefTable = UsersTable
 	ProductsTable.ForeignKeys[0].RefTable = CategoriesTable
+	ProductImgsTable.ForeignKeys[0].RefTable = ProductsTable
 }

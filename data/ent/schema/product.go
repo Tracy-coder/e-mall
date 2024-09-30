@@ -20,7 +20,6 @@ func (Product) Fields() []ent.Field {
 		field.String("title").Comment("title | 标题"),
 		field.String("info").Comment("info | 详细信息"),
 		field.Int64("price").Comment("price | 商品价格"),
-		field.String("img_path").Comment("image path | 商品图片"),
 		field.Int64("discount_price").Optional().Comment("discount price | 优惠后价格"),
 	}
 }
@@ -31,6 +30,7 @@ func (Product) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("carousels", Carousel.Type),
 		edge.From("category", Category.Type).Ref("product").Field("categoryID").Unique(),
+		edge.To("productimgs", ProductImg.Type),
 	}
 }
 

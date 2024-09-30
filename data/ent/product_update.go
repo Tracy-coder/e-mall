@@ -15,6 +15,7 @@ import (
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
+	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 )
 
 // ProductUpdate is the builder for updating Product entities.
@@ -119,20 +120,6 @@ func (pu *ProductUpdate) AddPrice(i int64) *ProductUpdate {
 	return pu
 }
 
-// SetImgPath sets the "img_path" field.
-func (pu *ProductUpdate) SetImgPath(s string) *ProductUpdate {
-	pu.mutation.SetImgPath(s)
-	return pu
-}
-
-// SetNillableImgPath sets the "img_path" field if the given value is not nil.
-func (pu *ProductUpdate) SetNillableImgPath(s *string) *ProductUpdate {
-	if s != nil {
-		pu.SetImgPath(*s)
-	}
-	return pu
-}
-
 // SetDiscountPrice sets the "discount_price" field.
 func (pu *ProductUpdate) SetDiscountPrice(i int64) *ProductUpdate {
 	pu.mutation.ResetDiscountPrice()
@@ -180,6 +167,21 @@ func (pu *ProductUpdate) SetCategory(c *Category) *ProductUpdate {
 	return pu.SetCategoryID(c.ID)
 }
 
+// AddProductimgIDs adds the "productimgs" edge to the ProductImg entity by IDs.
+func (pu *ProductUpdate) AddProductimgIDs(ids ...uint64) *ProductUpdate {
+	pu.mutation.AddProductimgIDs(ids...)
+	return pu
+}
+
+// AddProductimgs adds the "productimgs" edges to the ProductImg entity.
+func (pu *ProductUpdate) AddProductimgs(p ...*ProductImg) *ProductUpdate {
+	ids := make([]uint64, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.AddProductimgIDs(ids...)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pu *ProductUpdate) Mutation() *ProductMutation {
 	return pu.mutation
@@ -210,6 +212,27 @@ func (pu *ProductUpdate) RemoveCarousels(c ...*Carousel) *ProductUpdate {
 func (pu *ProductUpdate) ClearCategory() *ProductUpdate {
 	pu.mutation.ClearCategory()
 	return pu
+}
+
+// ClearProductimgs clears all "productimgs" edges to the ProductImg entity.
+func (pu *ProductUpdate) ClearProductimgs() *ProductUpdate {
+	pu.mutation.ClearProductimgs()
+	return pu
+}
+
+// RemoveProductimgIDs removes the "productimgs" edge to ProductImg entities by IDs.
+func (pu *ProductUpdate) RemoveProductimgIDs(ids ...uint64) *ProductUpdate {
+	pu.mutation.RemoveProductimgIDs(ids...)
+	return pu
+}
+
+// RemoveProductimgs removes "productimgs" edges to ProductImg entities.
+func (pu *ProductUpdate) RemoveProductimgs(p ...*ProductImg) *ProductUpdate {
+	ids := make([]uint64, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return pu.RemoveProductimgIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -274,9 +297,6 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.AddedPrice(); ok {
 		_spec.AddField(product.FieldPrice, field.TypeInt64, value)
-	}
-	if value, ok := pu.mutation.ImgPath(); ok {
-		_spec.SetField(product.FieldImgPath, field.TypeString, value)
 	}
 	if value, ok := pu.mutation.DiscountPrice(); ok {
 		_spec.SetField(product.FieldDiscountPrice, field.TypeInt64, value)
@@ -354,6 +374,51 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.ProductimgsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.ProductimgsTable,
+			Columns: []string{product.ProductimgsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedProductimgsIDs(); len(nodes) > 0 && !pu.mutation.ProductimgsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.ProductimgsTable,
+			Columns: []string{product.ProductimgsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.ProductimgsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.ProductimgsTable,
+			Columns: []string{product.ProductimgsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {
@@ -470,20 +535,6 @@ func (puo *ProductUpdateOne) AddPrice(i int64) *ProductUpdateOne {
 	return puo
 }
 
-// SetImgPath sets the "img_path" field.
-func (puo *ProductUpdateOne) SetImgPath(s string) *ProductUpdateOne {
-	puo.mutation.SetImgPath(s)
-	return puo
-}
-
-// SetNillableImgPath sets the "img_path" field if the given value is not nil.
-func (puo *ProductUpdateOne) SetNillableImgPath(s *string) *ProductUpdateOne {
-	if s != nil {
-		puo.SetImgPath(*s)
-	}
-	return puo
-}
-
 // SetDiscountPrice sets the "discount_price" field.
 func (puo *ProductUpdateOne) SetDiscountPrice(i int64) *ProductUpdateOne {
 	puo.mutation.ResetDiscountPrice()
@@ -531,6 +582,21 @@ func (puo *ProductUpdateOne) SetCategory(c *Category) *ProductUpdateOne {
 	return puo.SetCategoryID(c.ID)
 }
 
+// AddProductimgIDs adds the "productimgs" edge to the ProductImg entity by IDs.
+func (puo *ProductUpdateOne) AddProductimgIDs(ids ...uint64) *ProductUpdateOne {
+	puo.mutation.AddProductimgIDs(ids...)
+	return puo
+}
+
+// AddProductimgs adds the "productimgs" edges to the ProductImg entity.
+func (puo *ProductUpdateOne) AddProductimgs(p ...*ProductImg) *ProductUpdateOne {
+	ids := make([]uint64, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.AddProductimgIDs(ids...)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (puo *ProductUpdateOne) Mutation() *ProductMutation {
 	return puo.mutation
@@ -561,6 +627,27 @@ func (puo *ProductUpdateOne) RemoveCarousels(c ...*Carousel) *ProductUpdateOne {
 func (puo *ProductUpdateOne) ClearCategory() *ProductUpdateOne {
 	puo.mutation.ClearCategory()
 	return puo
+}
+
+// ClearProductimgs clears all "productimgs" edges to the ProductImg entity.
+func (puo *ProductUpdateOne) ClearProductimgs() *ProductUpdateOne {
+	puo.mutation.ClearProductimgs()
+	return puo
+}
+
+// RemoveProductimgIDs removes the "productimgs" edge to ProductImg entities by IDs.
+func (puo *ProductUpdateOne) RemoveProductimgIDs(ids ...uint64) *ProductUpdateOne {
+	puo.mutation.RemoveProductimgIDs(ids...)
+	return puo
+}
+
+// RemoveProductimgs removes "productimgs" edges to ProductImg entities.
+func (puo *ProductUpdateOne) RemoveProductimgs(p ...*ProductImg) *ProductUpdateOne {
+	ids := make([]uint64, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return puo.RemoveProductimgIDs(ids...)
 }
 
 // Where appends a list predicates to the ProductUpdate builder.
@@ -656,9 +743,6 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	if value, ok := puo.mutation.AddedPrice(); ok {
 		_spec.AddField(product.FieldPrice, field.TypeInt64, value)
 	}
-	if value, ok := puo.mutation.ImgPath(); ok {
-		_spec.SetField(product.FieldImgPath, field.TypeString, value)
-	}
 	if value, ok := puo.mutation.DiscountPrice(); ok {
 		_spec.SetField(product.FieldDiscountPrice, field.TypeInt64, value)
 	}
@@ -735,6 +819,51 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.ProductimgsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.ProductimgsTable,
+			Columns: []string{product.ProductimgsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedProductimgsIDs(); len(nodes) > 0 && !puo.mutation.ProductimgsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.ProductimgsTable,
+			Columns: []string{product.ProductimgsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.ProductimgsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.ProductimgsTable,
+			Columns: []string{product.ProductimgsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {

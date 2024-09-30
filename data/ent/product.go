@@ -33,8 +33,6 @@ type Product struct {
 	Info string `json:"info,omitempty"`
 	// price | 商品价格
 	Price int64 `json:"price,omitempty"`
-	// image path | 商品图片
-	ImgPath string `json:"img_path,omitempty"`
 	// discount price | 优惠后价格
 	DiscountPrice int64 `json:"discount_price,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -49,9 +47,11 @@ type ProductEdges struct {
 	Carousels []*Carousel `json:"carousels,omitempty"`
 	// Category holds the value of the category edge.
 	Category *Category `json:"category,omitempty"`
+	// Productimgs holds the value of the productimgs edge.
+	Productimgs []*ProductImg `json:"productimgs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CarouselsOrErr returns the Carousels value or an error if the edge
@@ -74,6 +74,15 @@ func (e ProductEdges) CategoryOrErr() (*Category, error) {
 	return nil, &NotLoadedError{edge: "category"}
 }
 
+// ProductimgsOrErr returns the Productimgs value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) ProductimgsOrErr() ([]*ProductImg, error) {
+	if e.loadedTypes[2] {
+		return e.Productimgs, nil
+	}
+	return nil, &NotLoadedError{edge: "productimgs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -81,7 +90,7 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case product.FieldID, product.FieldCategoryID, product.FieldPrice, product.FieldDiscountPrice:
 			values[i] = new(sql.NullInt64)
-		case product.FieldName, product.FieldTitle, product.FieldInfo, product.FieldImgPath:
+		case product.FieldName, product.FieldTitle, product.FieldInfo:
 			values[i] = new(sql.NullString)
 		case product.FieldCreatedAt, product.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -148,12 +157,6 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.Price = value.Int64
 			}
-		case product.FieldImgPath:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field img_path", values[i])
-			} else if value.Valid {
-				pr.ImgPath = value.String
-			}
 		case product.FieldDiscountPrice:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field discount_price", values[i])
@@ -181,6 +184,11 @@ func (pr *Product) QueryCarousels() *CarouselQuery {
 // QueryCategory queries the "category" edge of the Product entity.
 func (pr *Product) QueryCategory() *CategoryQuery {
 	return NewProductClient(pr.config).QueryCategory(pr)
+}
+
+// QueryProductimgs queries the "productimgs" edge of the Product entity.
+func (pr *Product) QueryProductimgs() *ProductImgQuery {
+	return NewProductClient(pr.config).QueryProductimgs(pr)
 }
 
 // Update returns a builder for updating this Product.
@@ -226,9 +234,6 @@ func (pr *Product) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("price=")
 	builder.WriteString(fmt.Sprintf("%v", pr.Price))
-	builder.WriteString(", ")
-	builder.WriteString("img_path=")
-	builder.WriteString(pr.ImgPath)
 	builder.WriteString(", ")
 	builder.WriteString("discount_price=")
 	builder.WriteString(fmt.Sprintf("%v", pr.DiscountPrice))
