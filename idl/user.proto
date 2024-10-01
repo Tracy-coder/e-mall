@@ -93,6 +93,12 @@ message UploadAvatarResp{
   string put = 3;
   string get = 4;
 }
+
+message CreateFavouriteReq{
+  uint64 ProductID = 1;
+}
+
+
 service user{
   rpc Register(UserRegisterReq) returns (base.BaseResp) {
     option (api.post) = "/api/v1/register";
@@ -126,6 +132,8 @@ service user{
   rpc UploadAvatar(UploadAvatarReq)returns(UploadAvatarResp){
     option (api.post) = "/api/v1/user/upload_avatar";
   }
+
+
 }
 
 message CreateProductReq {
@@ -301,5 +309,140 @@ service carousel{
   }
   rpc ListCarousels(Empty)returns(ListCarouselResp){
     option (api.get) = "/api/v1/carousels";
+  }
+}
+
+message ShowNoticesReq{
+  int32 pageID = 1;
+  int32 pageSize = 2;
+}
+
+message NoticeInfo{
+  uint64 ID = 1;
+  string Text = 2;
+  uint64 CreatedAt = 3;
+}
+message ShowNoticesResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  repeated NoticeInfo notices  = 3;
+  int32 total = 4;
+}
+
+message CreateNoticeReq{
+
+  string text = 1;
+}
+message CreateNoticeResp{
+      base.ErrCode errCode = 1;
+  string errMsg = 2;
+  NoticeInfo notice = 3;
+}
+service notice{
+  rpc ShowNotices(ShowNoticesReq)returns(ShowNoticesResp){
+    option (api.get) = "/api/v1/notices";
+  }
+
+  rpc CreateNotice(CreateNoticeReq)returns(CreateNoticeResp){
+    option (api.post) = "/api/v2/notices";
+  }
+}
+
+message Favourite{
+  uint64 ID = 1;
+  uint64 ProductID = 2;
+  uint64 UserID = 3;
+  uint64 CreatedAt = 4; 
+}
+message CreateFavouriteResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  Favourite favourite = 3;
+}
+
+message ShowFavouritesReq{
+  int32 page_id = 1;
+  int32 page_size = 2; 
+}
+
+message ShowFavouriteResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  repeated Favourite favourites = 3;
+  int32 Total = 4;
+}
+
+message DeleteFavouriteReq{
+  uint64 ProductID = 1;
+}
+
+service favourite{
+    rpc CreateFavourite(CreateFavouriteReq)returns(CreateFavouriteResp){
+    option (api.post) = "/api/v1/user/favourites";
+  }
+  rpc ShowFavourites(ShowFavouritesReq)returns(ShowFavouriteResp){
+    option (api.get) = "/api/v1/user/favourites";
+  }
+  rpc DeleteFavourite(DeleteFavouriteReq)returns(base.BaseResp){
+    option (api.delete) = "/api/v1/user/favourites";
+  }
+}
+
+message CreateAddressReq{
+  string name = 1;
+  string phone = 2;
+  string address = 3;
+}
+
+message AddressInfo{
+  uint64 ID = 1;
+  string Name = 2;
+  string Phone = 3;
+  string Address = 4;
+  uint64 CreatedAt = 5;
+}
+
+message CreateAddressResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  AddressInfo info = 3;
+}
+
+message ShowAddressResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  repeated AddressInfo info = 3;
+}
+
+message UpdateAddressReq{
+  uint64 id = 1;
+  string name = 2;
+  string phone = 3;
+  string address = 4;
+}
+
+message UpdateAddressResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  AddressInfo info = 3;
+}
+
+message DeleteAddressReq{
+  uint64 id = 1;
+}
+
+
+service address{
+  rpc CreateAddress(CreateAddressReq)returns(CreateAddressResp){
+    option (api.post) = "/api/v1/user/addresses";
+  }
+  rpc ShowAddress(Empty)returns(ShowAddressResp){
+    option (api.get) = "/api/v1/user/addresses";
+  }
+  rpc UpdateAddress(UpdateAddressReq)returns(base.BaseResp){
+    option (api.put) = "/api/v1/user/addresses";
+  }
+  rpc DeleteAddress(DeleteAddressReq)returns(base.BaseResp){
+    option (api.delete) = "/api/v1/user/addresses";
   }
 }

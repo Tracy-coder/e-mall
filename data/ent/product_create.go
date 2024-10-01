@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 )
@@ -142,6 +143,21 @@ func (pc *ProductCreate) AddProductimgs(p ...*ProductImg) *ProductCreate {
 		ids[i] = p[i].ID
 	}
 	return pc.AddProductimgIDs(ids...)
+}
+
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by IDs.
+func (pc *ProductCreate) AddFavouriteIDs(ids ...uint64) *ProductCreate {
+	pc.mutation.AddFavouriteIDs(ids...)
+	return pc
+}
+
+// AddFavourite adds the "favourite" edges to the Favourite entity.
+func (pc *ProductCreate) AddFavourite(f ...*Favourite) *ProductCreate {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return pc.AddFavouriteIDs(ids...)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -311,6 +327,22 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.FavouriteIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.FavouriteTable,
+			Columns: []string{product.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {

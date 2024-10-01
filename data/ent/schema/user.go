@@ -31,7 +31,10 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return []ent.Edge{edge.To("emails", Email.Type)}
+	return []ent.Edge{edge.To("emails", Email.Type),
+		edge.To("favourite", Favourite.Type),
+		edge.To("address", Address.Type),
+	}
 }
 
 func (User) Mixin() []ent.Mixin {

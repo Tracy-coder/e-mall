@@ -25,6 +25,17 @@ enum ErrCode {
   ListCarouselError = 18;
   UploadAvatarError = 19;
   CreateProductImgError = 20;
+  CreateNoticeError = 21;
+  ShowNoticesError = 22;
+  UnauthorizedError = 23;
+  CreateFavouriteError = 24;
+  ShowFavouriteError = 25;
+  DeleteFavouriteError = 26;
+  CreateAddressError = 27;
+  ShowAddressError = 28;
+  DeleteAddressError = 29;
+  UpdateAddressError = 30;
+
 }
 
 

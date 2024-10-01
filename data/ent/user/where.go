@@ -658,6 +658,52 @@ func HasEmailsWith(preds ...predicate.Email) predicate.User {
 	})
 }
 
+// HasFavourite applies the HasEdge predicate on the "favourite" edge.
+func HasFavourite() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FavouriteTable, FavouriteColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFavouriteWith applies the HasEdge predicate on the "favourite" edge with a given conditions (other predicates).
+func HasFavouriteWith(preds ...predicate.Favourite) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newFavouriteStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAddress applies the HasEdge predicate on the "address" edge.
+func HasAddress() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AddressTable, AddressColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAddressWith applies the HasEdge predicate on the "address" edge with a given conditions (other predicates).
+func HasAddressWith(preds ...predicate.Address) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newAddressStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

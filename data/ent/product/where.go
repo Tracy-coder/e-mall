@@ -559,6 +559,29 @@ func HasProductimgsWith(preds ...predicate.ProductImg) predicate.Product {
 	})
 }
 
+// HasFavourite applies the HasEdge predicate on the "favourite" edge.
+func HasFavourite() predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FavouriteTable, FavouriteColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFavouriteWith applies the HasEdge predicate on the "favourite" edge with a given conditions (other predicates).
+func HasFavouriteWith(preds ...predicate.Favourite) predicate.Product {
+	return predicate.Product(func(s *sql.Selector) {
+		step := newFavouriteStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Product) predicate.Product {
 	return predicate.Product(sql.AndPredicates(predicates...))

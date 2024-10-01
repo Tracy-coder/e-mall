@@ -12,12 +12,18 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Address is the client for interacting with the Address builders.
+	Address *AddressClient
 	// Carousel is the client for interacting with the Carousel builders.
 	Carousel *CarouselClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Email is the client for interacting with the Email builders.
 	Email *EmailClient
+	// Favourite is the client for interacting with the Favourite builders.
+	Favourite *FavouriteClient
+	// Notice is the client for interacting with the Notice builders.
+	Notice *NoticeClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// ProductImg is the client for interacting with the ProductImg builders.
@@ -155,9 +161,12 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Address = NewAddressClient(tx.config)
 	tx.Carousel = NewCarouselClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Email = NewEmailClient(tx.config)
+	tx.Favourite = NewFavouriteClient(tx.config)
+	tx.Notice = NewNoticeClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.ProductImg = NewProductImgClient(tx.config)
 	tx.User = NewUserClient(tx.config)
@@ -170,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Carousel.QueryXXX(), the query will be executed
+// applies a query, for example: Address.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

@@ -4,6 +4,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -99,17 +100,13 @@ func UserInfo(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
-	v, exist := c.Get("userID")
-	if !exist || v == nil {
-		c.JSON(consts.StatusUnauthorized, "Unauthorized")
-		return
-	}
-	i, err := strconv.Atoi(v.(string))
+	userID, err := getUserID(c)
 	if err != nil {
-		c.JSON(consts.StatusUnauthorized, "Unauthorized,"+err.Error())
+		resp.ErrCode = base.ErrCode_UnauthorizedError
+		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusUnauthorized, resp)
 		return
 	}
-	userID := uint64(i)
 	user, err := logic.NewUser(data.Default()).UserInfo(ctx, userID)
 	if err != nil {
 		resp.ErrCode = base.ErrCode_GetUserInfoError
@@ -236,7 +233,6 @@ func VerifyEmail(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusBadRequest, resp)
 		return
 	}
-	fmt.Println(req)
 	err = logic.NewUser(data.Default()).VerfifyEmail(ctx, req.EmailId, req.SecretCode)
 	if err != nil {
 		resp.ErrCode = base.ErrCode_VerifyEmailError
@@ -277,4 +273,16 @@ func UploadAvatar(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	c.JSON(consts.StatusOK, resp)
+}
+
+func getUserID(c *app.RequestContext) (uint64, error) {
+	v, exist := c.Get("userID")
+	if !exist || v == nil {
+		return 0, errors.New("Unauthorized")
+	}
+	i, err := strconv.Atoi(v.(string))
+	if err != nil {
+		return 0, err
+	}
+	return uint64(i), nil
 }

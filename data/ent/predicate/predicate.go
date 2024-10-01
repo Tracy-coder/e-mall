@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Address is the predicate function for address builders.
+type Address func(*sql.Selector)
+
 // Carousel is the predicate function for carousel builders.
 type Carousel func(*sql.Selector)
 
@@ -14,6 +17,12 @@ type Category func(*sql.Selector)
 
 // Email is the predicate function for email builders.
 type Email func(*sql.Selector)
+
+// Favourite is the predicate function for favourite builders.
+type Favourite func(*sql.Selector)
+
+// Notice is the predicate function for notice builders.
+type Notice func(*sql.Selector)
 
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)

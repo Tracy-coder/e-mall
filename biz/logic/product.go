@@ -37,6 +37,7 @@ func (p *Product) CreateProduct(ctx context.Context, req domain.CreateProductReq
 	if err != nil {
 		return nil, err
 	}
+	info.CreatedAt = uint64(productDB.CreatedAt.Unix())
 	return info, nil
 }
 

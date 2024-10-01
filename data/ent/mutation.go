@@ -11,9 +11,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/Tracy-coder/e-mall/data/ent/address"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
+	"github.com/Tracy-coder/e-mall/data/ent/notice"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
@@ -29,13 +32,710 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeAddress    = "Address"
 	TypeCarousel   = "Carousel"
 	TypeCategory   = "Category"
 	TypeEmail      = "Email"
+	TypeFavourite  = "Favourite"
+	TypeNotice     = "Notice"
 	TypeProduct    = "Product"
 	TypeProductImg = "ProductImg"
 	TypeUser       = "User"
 )
+
+// AddressMutation represents an operation that mutates the Address nodes in the graph.
+type AddressMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uint64
+	created_at          *time.Time
+	updated_at          *time.Time
+	_Name               *string
+	_Phone              *string
+	_Address            *string
+	clearedFields       map[string]struct{}
+	user_address        *uint64
+	cleareduser_address bool
+	done                bool
+	oldValue            func(context.Context) (*Address, error)
+	predicates          []predicate.Address
+}
+
+var _ ent.Mutation = (*AddressMutation)(nil)
+
+// addressOption allows management of the mutation configuration using functional options.
+type addressOption func(*AddressMutation)
+
+// newAddressMutation creates new mutation for the Address entity.
+func newAddressMutation(c config, op Op, opts ...addressOption) *AddressMutation {
+	m := &AddressMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAddress,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAddressID sets the ID field of the mutation.
+func withAddressID(id uint64) addressOption {
+	return func(m *AddressMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Address
+		)
+		m.oldValue = func(ctx context.Context) (*Address, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Address.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAddress sets the old Address of the mutation.
+func withAddress(node *Address) addressOption {
+	return func(m *AddressMutation) {
+		m.oldValue = func(context.Context) (*Address, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AddressMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AddressMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Address entities.
+func (m *AddressMutation) SetID(id uint64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AddressMutation) ID() (id uint64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AddressMutation) IDs(ctx context.Context) ([]uint64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Address.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AddressMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AddressMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Address entity.
+// If the Address object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AddressMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AddressMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AddressMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Address entity.
+// If the Address object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AddressMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetName sets the "Name" field.
+func (m *AddressMutation) SetName(s string) {
+	m._Name = &s
+}
+
+// Name returns the value of the "Name" field in the mutation.
+func (m *AddressMutation) Name() (r string, exists bool) {
+	v := m._Name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "Name" field's value of the Address entity.
+// If the Address object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "Name" field.
+func (m *AddressMutation) ResetName() {
+	m._Name = nil
+}
+
+// SetPhone sets the "Phone" field.
+func (m *AddressMutation) SetPhone(s string) {
+	m._Phone = &s
+}
+
+// Phone returns the value of the "Phone" field in the mutation.
+func (m *AddressMutation) Phone() (r string, exists bool) {
+	v := m._Phone
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPhone returns the old "Phone" field's value of the Address entity.
+// If the Address object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressMutation) OldPhone(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPhone is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPhone requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPhone: %w", err)
+	}
+	return oldValue.Phone, nil
+}
+
+// ResetPhone resets all changes to the "Phone" field.
+func (m *AddressMutation) ResetPhone() {
+	m._Phone = nil
+}
+
+// SetAddress sets the "Address" field.
+func (m *AddressMutation) SetAddress(s string) {
+	m._Address = &s
+}
+
+// Address returns the value of the "Address" field in the mutation.
+func (m *AddressMutation) Address() (r string, exists bool) {
+	v := m._Address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddress returns the old "Address" field's value of the Address entity.
+// If the Address object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressMutation) OldAddress(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddress is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddress requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddress: %w", err)
+	}
+	return oldValue.Address, nil
+}
+
+// ResetAddress resets all changes to the "Address" field.
+func (m *AddressMutation) ResetAddress() {
+	m._Address = nil
+}
+
+// SetUserID sets the "UserID" field.
+func (m *AddressMutation) SetUserID(u uint64) {
+	m.user_address = &u
+}
+
+// UserID returns the value of the "UserID" field in the mutation.
+func (m *AddressMutation) UserID() (r uint64, exists bool) {
+	v := m.user_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "UserID" field's value of the Address entity.
+// If the Address object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressMutation) OldUserID(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ClearUserID clears the value of the "UserID" field.
+func (m *AddressMutation) ClearUserID() {
+	m.user_address = nil
+	m.clearedFields[address.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "UserID" field was cleared in this mutation.
+func (m *AddressMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[address.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "UserID" field.
+func (m *AddressMutation) ResetUserID() {
+	m.user_address = nil
+	delete(m.clearedFields, address.FieldUserID)
+}
+
+// SetUserAddressID sets the "user_address" edge to the User entity by id.
+func (m *AddressMutation) SetUserAddressID(id uint64) {
+	m.user_address = &id
+}
+
+// ClearUserAddress clears the "user_address" edge to the User entity.
+func (m *AddressMutation) ClearUserAddress() {
+	m.cleareduser_address = true
+	m.clearedFields[address.FieldUserID] = struct{}{}
+}
+
+// UserAddressCleared reports if the "user_address" edge to the User entity was cleared.
+func (m *AddressMutation) UserAddressCleared() bool {
+	return m.UserIDCleared() || m.cleareduser_address
+}
+
+// UserAddressID returns the "user_address" edge ID in the mutation.
+func (m *AddressMutation) UserAddressID() (id uint64, exists bool) {
+	if m.user_address != nil {
+		return *m.user_address, true
+	}
+	return
+}
+
+// UserAddressIDs returns the "user_address" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserAddressID instead. It exists only for internal usage by the builders.
+func (m *AddressMutation) UserAddressIDs() (ids []uint64) {
+	if id := m.user_address; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserAddress resets all changes to the "user_address" edge.
+func (m *AddressMutation) ResetUserAddress() {
+	m.user_address = nil
+	m.cleareduser_address = false
+}
+
+// Where appends a list predicates to the AddressMutation builder.
+func (m *AddressMutation) Where(ps ...predicate.Address) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AddressMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AddressMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Address, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AddressMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AddressMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Address).
+func (m *AddressMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AddressMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, address.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, address.FieldUpdatedAt)
+	}
+	if m._Name != nil {
+		fields = append(fields, address.FieldName)
+	}
+	if m._Phone != nil {
+		fields = append(fields, address.FieldPhone)
+	}
+	if m._Address != nil {
+		fields = append(fields, address.FieldAddress)
+	}
+	if m.user_address != nil {
+		fields = append(fields, address.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AddressMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case address.FieldCreatedAt:
+		return m.CreatedAt()
+	case address.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case address.FieldName:
+		return m.Name()
+	case address.FieldPhone:
+		return m.Phone()
+	case address.FieldAddress:
+		return m.Address()
+	case address.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AddressMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case address.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case address.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case address.FieldName:
+		return m.OldName(ctx)
+	case address.FieldPhone:
+		return m.OldPhone(ctx)
+	case address.FieldAddress:
+		return m.OldAddress(ctx)
+	case address.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown Address field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AddressMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case address.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case address.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case address.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case address.FieldPhone:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPhone(v)
+		return nil
+	case address.FieldAddress:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddress(v)
+		return nil
+	case address.FieldUserID:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Address field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AddressMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AddressMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AddressMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Address numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AddressMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(address.FieldUserID) {
+		fields = append(fields, address.FieldUserID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AddressMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AddressMutation) ClearField(name string) error {
+	switch name {
+	case address.FieldUserID:
+		m.ClearUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown Address nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AddressMutation) ResetField(name string) error {
+	switch name {
+	case address.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case address.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case address.FieldName:
+		m.ResetName()
+		return nil
+	case address.FieldPhone:
+		m.ResetPhone()
+		return nil
+	case address.FieldAddress:
+		m.ResetAddress()
+		return nil
+	case address.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown Address field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AddressMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user_address != nil {
+		edges = append(edges, address.EdgeUserAddress)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AddressMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case address.EdgeUserAddress:
+		if id := m.user_address; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AddressMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AddressMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AddressMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser_address {
+		edges = append(edges, address.EdgeUserAddress)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AddressMutation) EdgeCleared(name string) bool {
+	switch name {
+	case address.EdgeUserAddress:
+		return m.cleareduser_address
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AddressMutation) ClearEdge(name string) error {
+	switch name {
+	case address.EdgeUserAddress:
+		m.ClearUserAddress()
+		return nil
+	}
+	return fmt.Errorf("unknown Address unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AddressMutation) ResetEdge(name string) error {
+	switch name {
+	case address.EdgeUserAddress:
+		m.ResetUserAddress()
+		return nil
+	}
+	return fmt.Errorf("unknown Address edge %s", name)
+}
 
 // CarouselMutation represents an operation that mutates the Carousel nodes in the graph.
 type CarouselMutation struct {
@@ -1990,6 +2690,1110 @@ func (m *EmailMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Email edge %s", name)
 }
 
+// FavouriteMutation represents an operation that mutates the Favourite nodes in the graph.
+type FavouriteMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *uint64
+	created_at               *time.Time
+	updated_at               *time.Time
+	clearedFields            map[string]struct{}
+	product_favourite        *uint64
+	clearedproduct_favourite bool
+	user_favourite           *uint64
+	cleareduser_favourite    bool
+	done                     bool
+	oldValue                 func(context.Context) (*Favourite, error)
+	predicates               []predicate.Favourite
+}
+
+var _ ent.Mutation = (*FavouriteMutation)(nil)
+
+// favouriteOption allows management of the mutation configuration using functional options.
+type favouriteOption func(*FavouriteMutation)
+
+// newFavouriteMutation creates new mutation for the Favourite entity.
+func newFavouriteMutation(c config, op Op, opts ...favouriteOption) *FavouriteMutation {
+	m := &FavouriteMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFavourite,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFavouriteID sets the ID field of the mutation.
+func withFavouriteID(id uint64) favouriteOption {
+	return func(m *FavouriteMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Favourite
+		)
+		m.oldValue = func(ctx context.Context) (*Favourite, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Favourite.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFavourite sets the old Favourite of the mutation.
+func withFavourite(node *Favourite) favouriteOption {
+	return func(m *FavouriteMutation) {
+		m.oldValue = func(context.Context) (*Favourite, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FavouriteMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FavouriteMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Favourite entities.
+func (m *FavouriteMutation) SetID(id uint64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FavouriteMutation) ID() (id uint64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FavouriteMutation) IDs(ctx context.Context) ([]uint64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Favourite.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FavouriteMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FavouriteMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Favourite entity.
+// If the Favourite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FavouriteMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FavouriteMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FavouriteMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FavouriteMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Favourite entity.
+// If the Favourite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FavouriteMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FavouriteMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetProductID sets the "productID" field.
+func (m *FavouriteMutation) SetProductID(u uint64) {
+	m.product_favourite = &u
+}
+
+// ProductID returns the value of the "productID" field in the mutation.
+func (m *FavouriteMutation) ProductID() (r uint64, exists bool) {
+	v := m.product_favourite
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProductID returns the old "productID" field's value of the Favourite entity.
+// If the Favourite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FavouriteMutation) OldProductID(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProductID: %w", err)
+	}
+	return oldValue.ProductID, nil
+}
+
+// ClearProductID clears the value of the "productID" field.
+func (m *FavouriteMutation) ClearProductID() {
+	m.product_favourite = nil
+	m.clearedFields[favourite.FieldProductID] = struct{}{}
+}
+
+// ProductIDCleared returns if the "productID" field was cleared in this mutation.
+func (m *FavouriteMutation) ProductIDCleared() bool {
+	_, ok := m.clearedFields[favourite.FieldProductID]
+	return ok
+}
+
+// ResetProductID resets all changes to the "productID" field.
+func (m *FavouriteMutation) ResetProductID() {
+	m.product_favourite = nil
+	delete(m.clearedFields, favourite.FieldProductID)
+}
+
+// SetUserID sets the "userID" field.
+func (m *FavouriteMutation) SetUserID(u uint64) {
+	m.user_favourite = &u
+}
+
+// UserID returns the value of the "userID" field in the mutation.
+func (m *FavouriteMutation) UserID() (r uint64, exists bool) {
+	v := m.user_favourite
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "userID" field's value of the Favourite entity.
+// If the Favourite object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FavouriteMutation) OldUserID(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ClearUserID clears the value of the "userID" field.
+func (m *FavouriteMutation) ClearUserID() {
+	m.user_favourite = nil
+	m.clearedFields[favourite.FieldUserID] = struct{}{}
+}
+
+// UserIDCleared returns if the "userID" field was cleared in this mutation.
+func (m *FavouriteMutation) UserIDCleared() bool {
+	_, ok := m.clearedFields[favourite.FieldUserID]
+	return ok
+}
+
+// ResetUserID resets all changes to the "userID" field.
+func (m *FavouriteMutation) ResetUserID() {
+	m.user_favourite = nil
+	delete(m.clearedFields, favourite.FieldUserID)
+}
+
+// SetProductFavouriteID sets the "product_favourite" edge to the Product entity by id.
+func (m *FavouriteMutation) SetProductFavouriteID(id uint64) {
+	m.product_favourite = &id
+}
+
+// ClearProductFavourite clears the "product_favourite" edge to the Product entity.
+func (m *FavouriteMutation) ClearProductFavourite() {
+	m.clearedproduct_favourite = true
+	m.clearedFields[favourite.FieldProductID] = struct{}{}
+}
+
+// ProductFavouriteCleared reports if the "product_favourite" edge to the Product entity was cleared.
+func (m *FavouriteMutation) ProductFavouriteCleared() bool {
+	return m.ProductIDCleared() || m.clearedproduct_favourite
+}
+
+// ProductFavouriteID returns the "product_favourite" edge ID in the mutation.
+func (m *FavouriteMutation) ProductFavouriteID() (id uint64, exists bool) {
+	if m.product_favourite != nil {
+		return *m.product_favourite, true
+	}
+	return
+}
+
+// ProductFavouriteIDs returns the "product_favourite" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProductFavouriteID instead. It exists only for internal usage by the builders.
+func (m *FavouriteMutation) ProductFavouriteIDs() (ids []uint64) {
+	if id := m.product_favourite; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProductFavourite resets all changes to the "product_favourite" edge.
+func (m *FavouriteMutation) ResetProductFavourite() {
+	m.product_favourite = nil
+	m.clearedproduct_favourite = false
+}
+
+// SetUserFavouriteID sets the "user_favourite" edge to the User entity by id.
+func (m *FavouriteMutation) SetUserFavouriteID(id uint64) {
+	m.user_favourite = &id
+}
+
+// ClearUserFavourite clears the "user_favourite" edge to the User entity.
+func (m *FavouriteMutation) ClearUserFavourite() {
+	m.cleareduser_favourite = true
+	m.clearedFields[favourite.FieldUserID] = struct{}{}
+}
+
+// UserFavouriteCleared reports if the "user_favourite" edge to the User entity was cleared.
+func (m *FavouriteMutation) UserFavouriteCleared() bool {
+	return m.UserIDCleared() || m.cleareduser_favourite
+}
+
+// UserFavouriteID returns the "user_favourite" edge ID in the mutation.
+func (m *FavouriteMutation) UserFavouriteID() (id uint64, exists bool) {
+	if m.user_favourite != nil {
+		return *m.user_favourite, true
+	}
+	return
+}
+
+// UserFavouriteIDs returns the "user_favourite" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserFavouriteID instead. It exists only for internal usage by the builders.
+func (m *FavouriteMutation) UserFavouriteIDs() (ids []uint64) {
+	if id := m.user_favourite; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserFavourite resets all changes to the "user_favourite" edge.
+func (m *FavouriteMutation) ResetUserFavourite() {
+	m.user_favourite = nil
+	m.cleareduser_favourite = false
+}
+
+// Where appends a list predicates to the FavouriteMutation builder.
+func (m *FavouriteMutation) Where(ps ...predicate.Favourite) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FavouriteMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FavouriteMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Favourite, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FavouriteMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FavouriteMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Favourite).
+func (m *FavouriteMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FavouriteMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, favourite.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, favourite.FieldUpdatedAt)
+	}
+	if m.product_favourite != nil {
+		fields = append(fields, favourite.FieldProductID)
+	}
+	if m.user_favourite != nil {
+		fields = append(fields, favourite.FieldUserID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FavouriteMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case favourite.FieldCreatedAt:
+		return m.CreatedAt()
+	case favourite.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case favourite.FieldProductID:
+		return m.ProductID()
+	case favourite.FieldUserID:
+		return m.UserID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FavouriteMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case favourite.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case favourite.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case favourite.FieldProductID:
+		return m.OldProductID(ctx)
+	case favourite.FieldUserID:
+		return m.OldUserID(ctx)
+	}
+	return nil, fmt.Errorf("unknown Favourite field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FavouriteMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case favourite.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case favourite.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case favourite.FieldProductID:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProductID(v)
+		return nil
+	case favourite.FieldUserID:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Favourite field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FavouriteMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FavouriteMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FavouriteMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Favourite numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FavouriteMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(favourite.FieldProductID) {
+		fields = append(fields, favourite.FieldProductID)
+	}
+	if m.FieldCleared(favourite.FieldUserID) {
+		fields = append(fields, favourite.FieldUserID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FavouriteMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FavouriteMutation) ClearField(name string) error {
+	switch name {
+	case favourite.FieldProductID:
+		m.ClearProductID()
+		return nil
+	case favourite.FieldUserID:
+		m.ClearUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown Favourite nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FavouriteMutation) ResetField(name string) error {
+	switch name {
+	case favourite.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case favourite.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case favourite.FieldProductID:
+		m.ResetProductID()
+		return nil
+	case favourite.FieldUserID:
+		m.ResetUserID()
+		return nil
+	}
+	return fmt.Errorf("unknown Favourite field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FavouriteMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.product_favourite != nil {
+		edges = append(edges, favourite.EdgeProductFavourite)
+	}
+	if m.user_favourite != nil {
+		edges = append(edges, favourite.EdgeUserFavourite)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FavouriteMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case favourite.EdgeProductFavourite:
+		if id := m.product_favourite; id != nil {
+			return []ent.Value{*id}
+		}
+	case favourite.EdgeUserFavourite:
+		if id := m.user_favourite; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FavouriteMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FavouriteMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FavouriteMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedproduct_favourite {
+		edges = append(edges, favourite.EdgeProductFavourite)
+	}
+	if m.cleareduser_favourite {
+		edges = append(edges, favourite.EdgeUserFavourite)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FavouriteMutation) EdgeCleared(name string) bool {
+	switch name {
+	case favourite.EdgeProductFavourite:
+		return m.clearedproduct_favourite
+	case favourite.EdgeUserFavourite:
+		return m.cleareduser_favourite
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FavouriteMutation) ClearEdge(name string) error {
+	switch name {
+	case favourite.EdgeProductFavourite:
+		m.ClearProductFavourite()
+		return nil
+	case favourite.EdgeUserFavourite:
+		m.ClearUserFavourite()
+		return nil
+	}
+	return fmt.Errorf("unknown Favourite unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FavouriteMutation) ResetEdge(name string) error {
+	switch name {
+	case favourite.EdgeProductFavourite:
+		m.ResetProductFavourite()
+		return nil
+	case favourite.EdgeUserFavourite:
+		m.ResetUserFavourite()
+		return nil
+	}
+	return fmt.Errorf("unknown Favourite edge %s", name)
+}
+
+// NoticeMutation represents an operation that mutates the Notice nodes in the graph.
+type NoticeMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uint64
+	created_at    *time.Time
+	updated_at    *time.Time
+	_Text         *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Notice, error)
+	predicates    []predicate.Notice
+}
+
+var _ ent.Mutation = (*NoticeMutation)(nil)
+
+// noticeOption allows management of the mutation configuration using functional options.
+type noticeOption func(*NoticeMutation)
+
+// newNoticeMutation creates new mutation for the Notice entity.
+func newNoticeMutation(c config, op Op, opts ...noticeOption) *NoticeMutation {
+	m := &NoticeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNotice,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNoticeID sets the ID field of the mutation.
+func withNoticeID(id uint64) noticeOption {
+	return func(m *NoticeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Notice
+		)
+		m.oldValue = func(ctx context.Context) (*Notice, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Notice.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNotice sets the old Notice of the mutation.
+func withNotice(node *Notice) noticeOption {
+	return func(m *NoticeMutation) {
+		m.oldValue = func(context.Context) (*Notice, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NoticeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NoticeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Notice entities.
+func (m *NoticeMutation) SetID(id uint64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NoticeMutation) ID() (id uint64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NoticeMutation) IDs(ctx context.Context) ([]uint64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uint64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Notice.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NoticeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NoticeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Notice entity.
+// If the Notice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NoticeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NoticeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NoticeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NoticeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Notice entity.
+// If the Notice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NoticeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NoticeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetText sets the "Text" field.
+func (m *NoticeMutation) SetText(s string) {
+	m._Text = &s
+}
+
+// Text returns the value of the "Text" field in the mutation.
+func (m *NoticeMutation) Text() (r string, exists bool) {
+	v := m._Text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldText returns the old "Text" field's value of the Notice entity.
+// If the Notice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NoticeMutation) OldText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ResetText resets all changes to the "Text" field.
+func (m *NoticeMutation) ResetText() {
+	m._Text = nil
+}
+
+// Where appends a list predicates to the NoticeMutation builder.
+func (m *NoticeMutation) Where(ps ...predicate.Notice) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NoticeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NoticeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Notice, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NoticeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NoticeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Notice).
+func (m *NoticeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NoticeMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.created_at != nil {
+		fields = append(fields, notice.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, notice.FieldUpdatedAt)
+	}
+	if m._Text != nil {
+		fields = append(fields, notice.FieldText)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NoticeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case notice.FieldCreatedAt:
+		return m.CreatedAt()
+	case notice.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case notice.FieldText:
+		return m.Text()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NoticeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case notice.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case notice.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case notice.FieldText:
+		return m.OldText(ctx)
+	}
+	return nil, fmt.Errorf("unknown Notice field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NoticeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case notice.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case notice.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case notice.FieldText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetText(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Notice field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NoticeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NoticeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NoticeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Notice numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NoticeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NoticeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NoticeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Notice nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NoticeMutation) ResetField(name string) error {
+	switch name {
+	case notice.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case notice.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case notice.FieldText:
+		m.ResetText()
+		return nil
+	}
+	return fmt.Errorf("unknown Notice field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NoticeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NoticeMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NoticeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NoticeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NoticeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NoticeMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NoticeMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Notice unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NoticeMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Notice edge %s", name)
+}
+
 // ProductMutation represents an operation that mutates the Product nodes in the graph.
 type ProductMutation struct {
 	config
@@ -2014,6 +3818,9 @@ type ProductMutation struct {
 	productimgs        map[uint64]struct{}
 	removedproductimgs map[uint64]struct{}
 	clearedproductimgs bool
+	favourite          map[uint64]struct{}
+	removedfavourite   map[uint64]struct{}
+	clearedfavourite   bool
 	done               bool
 	oldValue           func(context.Context) (*Product, error)
 	predicates         []predicate.Product
@@ -2613,6 +4420,60 @@ func (m *ProductMutation) ResetProductimgs() {
 	m.removedproductimgs = nil
 }
 
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by ids.
+func (m *ProductMutation) AddFavouriteIDs(ids ...uint64) {
+	if m.favourite == nil {
+		m.favourite = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		m.favourite[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFavourite clears the "favourite" edge to the Favourite entity.
+func (m *ProductMutation) ClearFavourite() {
+	m.clearedfavourite = true
+}
+
+// FavouriteCleared reports if the "favourite" edge to the Favourite entity was cleared.
+func (m *ProductMutation) FavouriteCleared() bool {
+	return m.clearedfavourite
+}
+
+// RemoveFavouriteIDs removes the "favourite" edge to the Favourite entity by IDs.
+func (m *ProductMutation) RemoveFavouriteIDs(ids ...uint64) {
+	if m.removedfavourite == nil {
+		m.removedfavourite = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		delete(m.favourite, ids[i])
+		m.removedfavourite[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFavourite returns the removed IDs of the "favourite" edge to the Favourite entity.
+func (m *ProductMutation) RemovedFavouriteIDs() (ids []uint64) {
+	for id := range m.removedfavourite {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FavouriteIDs returns the "favourite" edge IDs in the mutation.
+func (m *ProductMutation) FavouriteIDs() (ids []uint64) {
+	for id := range m.favourite {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFavourite resets all changes to the "favourite" edge.
+func (m *ProductMutation) ResetFavourite() {
+	m.favourite = nil
+	m.clearedfavourite = false
+	m.removedfavourite = nil
+}
+
 // Where appends a list predicates to the ProductMutation builder.
 func (m *ProductMutation) Where(ps ...predicate.Product) {
 	m.predicates = append(m.predicates, ps...)
@@ -2907,7 +4768,7 @@ func (m *ProductMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProductMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.carousels != nil {
 		edges = append(edges, product.EdgeCarousels)
 	}
@@ -2916,6 +4777,9 @@ func (m *ProductMutation) AddedEdges() []string {
 	}
 	if m.productimgs != nil {
 		edges = append(edges, product.EdgeProductimgs)
+	}
+	if m.favourite != nil {
+		edges = append(edges, product.EdgeFavourite)
 	}
 	return edges
 }
@@ -2940,18 +4804,27 @@ func (m *ProductMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case product.EdgeFavourite:
+		ids := make([]ent.Value, 0, len(m.favourite))
+		for id := range m.favourite {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProductMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedcarousels != nil {
 		edges = append(edges, product.EdgeCarousels)
 	}
 	if m.removedproductimgs != nil {
 		edges = append(edges, product.EdgeProductimgs)
+	}
+	if m.removedfavourite != nil {
+		edges = append(edges, product.EdgeFavourite)
 	}
 	return edges
 }
@@ -2972,13 +4845,19 @@ func (m *ProductMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case product.EdgeFavourite:
+		ids := make([]ent.Value, 0, len(m.removedfavourite))
+		for id := range m.removedfavourite {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProductMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedcarousels {
 		edges = append(edges, product.EdgeCarousels)
 	}
@@ -2987,6 +4866,9 @@ func (m *ProductMutation) ClearedEdges() []string {
 	}
 	if m.clearedproductimgs {
 		edges = append(edges, product.EdgeProductimgs)
+	}
+	if m.clearedfavourite {
+		edges = append(edges, product.EdgeFavourite)
 	}
 	return edges
 }
@@ -3001,6 +4883,8 @@ func (m *ProductMutation) EdgeCleared(name string) bool {
 		return m.clearedcategory
 	case product.EdgeProductimgs:
 		return m.clearedproductimgs
+	case product.EdgeFavourite:
+		return m.clearedfavourite
 	}
 	return false
 }
@@ -3028,6 +4912,9 @@ func (m *ProductMutation) ResetEdge(name string) error {
 		return nil
 	case product.EdgeProductimgs:
 		m.ResetProductimgs()
+		return nil
+	case product.EdgeFavourite:
+		m.ResetFavourite()
 		return nil
 	}
 	return fmt.Errorf("unknown Product edge %s", name)
@@ -3609,27 +5496,33 @@ func (m *ProductImgMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uint64
-	created_at    *time.Time
-	updated_at    *time.Time
-	status        *uint8
-	addstatus     *int8
-	username      *string
-	password      *string
-	nickname      *string
-	email         *string
-	avatar        *string
-	github_id     *uint64
-	addgithub_id  *int64
-	clearedFields map[string]struct{}
-	emails        map[uint64]struct{}
-	removedemails map[uint64]struct{}
-	clearedemails bool
-	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	op               Op
+	typ              string
+	id               *uint64
+	created_at       *time.Time
+	updated_at       *time.Time
+	status           *uint8
+	addstatus        *int8
+	username         *string
+	password         *string
+	nickname         *string
+	email            *string
+	avatar           *string
+	github_id        *uint64
+	addgithub_id     *int64
+	clearedFields    map[string]struct{}
+	emails           map[uint64]struct{}
+	removedemails    map[uint64]struct{}
+	clearedemails    bool
+	favourite        map[uint64]struct{}
+	removedfavourite map[uint64]struct{}
+	clearedfavourite bool
+	address          map[uint64]struct{}
+	removedaddress   map[uint64]struct{}
+	clearedaddress   bool
+	done             bool
+	oldValue         func(context.Context) (*User, error)
+	predicates       []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -4221,6 +6114,114 @@ func (m *UserMutation) ResetEmails() {
 	m.removedemails = nil
 }
 
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by ids.
+func (m *UserMutation) AddFavouriteIDs(ids ...uint64) {
+	if m.favourite == nil {
+		m.favourite = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		m.favourite[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFavourite clears the "favourite" edge to the Favourite entity.
+func (m *UserMutation) ClearFavourite() {
+	m.clearedfavourite = true
+}
+
+// FavouriteCleared reports if the "favourite" edge to the Favourite entity was cleared.
+func (m *UserMutation) FavouriteCleared() bool {
+	return m.clearedfavourite
+}
+
+// RemoveFavouriteIDs removes the "favourite" edge to the Favourite entity by IDs.
+func (m *UserMutation) RemoveFavouriteIDs(ids ...uint64) {
+	if m.removedfavourite == nil {
+		m.removedfavourite = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		delete(m.favourite, ids[i])
+		m.removedfavourite[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFavourite returns the removed IDs of the "favourite" edge to the Favourite entity.
+func (m *UserMutation) RemovedFavouriteIDs() (ids []uint64) {
+	for id := range m.removedfavourite {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FavouriteIDs returns the "favourite" edge IDs in the mutation.
+func (m *UserMutation) FavouriteIDs() (ids []uint64) {
+	for id := range m.favourite {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFavourite resets all changes to the "favourite" edge.
+func (m *UserMutation) ResetFavourite() {
+	m.favourite = nil
+	m.clearedfavourite = false
+	m.removedfavourite = nil
+}
+
+// AddAddresIDs adds the "address" edge to the Address entity by ids.
+func (m *UserMutation) AddAddresIDs(ids ...uint64) {
+	if m.address == nil {
+		m.address = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		m.address[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAddress clears the "address" edge to the Address entity.
+func (m *UserMutation) ClearAddress() {
+	m.clearedaddress = true
+}
+
+// AddressCleared reports if the "address" edge to the Address entity was cleared.
+func (m *UserMutation) AddressCleared() bool {
+	return m.clearedaddress
+}
+
+// RemoveAddresIDs removes the "address" edge to the Address entity by IDs.
+func (m *UserMutation) RemoveAddresIDs(ids ...uint64) {
+	if m.removedaddress == nil {
+		m.removedaddress = make(map[uint64]struct{})
+	}
+	for i := range ids {
+		delete(m.address, ids[i])
+		m.removedaddress[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAddress returns the removed IDs of the "address" edge to the Address entity.
+func (m *UserMutation) RemovedAddressIDs() (ids []uint64) {
+	for id := range m.removedaddress {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AddressIDs returns the "address" edge IDs in the mutation.
+func (m *UserMutation) AddressIDs() (ids []uint64) {
+	for id := range m.address {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAddress resets all changes to the "address" edge.
+func (m *UserMutation) ResetAddress() {
+	m.address = nil
+	m.clearedaddress = false
+	m.removedaddress = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -4550,9 +6551,15 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.emails != nil {
 		edges = append(edges, user.EdgeEmails)
+	}
+	if m.favourite != nil {
+		edges = append(edges, user.EdgeFavourite)
+	}
+	if m.address != nil {
+		edges = append(edges, user.EdgeAddress)
 	}
 	return edges
 }
@@ -4567,15 +6574,33 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFavourite:
+		ids := make([]ent.Value, 0, len(m.favourite))
+		for id := range m.favourite {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeAddress:
+		ids := make([]ent.Value, 0, len(m.address))
+		for id := range m.address {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.removedemails != nil {
 		edges = append(edges, user.EdgeEmails)
+	}
+	if m.removedfavourite != nil {
+		edges = append(edges, user.EdgeFavourite)
+	}
+	if m.removedaddress != nil {
+		edges = append(edges, user.EdgeAddress)
 	}
 	return edges
 }
@@ -4590,15 +6615,33 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeFavourite:
+		ids := make([]ent.Value, 0, len(m.removedfavourite))
+		for id := range m.removedfavourite {
+			ids = append(ids, id)
+		}
+		return ids
+	case user.EdgeAddress:
+		ids := make([]ent.Value, 0, len(m.removedaddress))
+		for id := range m.removedaddress {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 3)
 	if m.clearedemails {
 		edges = append(edges, user.EdgeEmails)
+	}
+	if m.clearedfavourite {
+		edges = append(edges, user.EdgeFavourite)
+	}
+	if m.clearedaddress {
+		edges = append(edges, user.EdgeAddress)
 	}
 	return edges
 }
@@ -4609,6 +6652,10 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 	switch name {
 	case user.EdgeEmails:
 		return m.clearedemails
+	case user.EdgeFavourite:
+		return m.clearedfavourite
+	case user.EdgeAddress:
+		return m.clearedaddress
 	}
 	return false
 }
@@ -4627,6 +6674,12 @@ func (m *UserMutation) ResetEdge(name string) error {
 	switch name {
 	case user.EdgeEmails:
 		m.ResetEmails()
+		return nil
+	case user.EdgeFavourite:
+		m.ResetFavourite()
+		return nil
+	case user.EdgeAddress:
+		m.ResetAddress()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

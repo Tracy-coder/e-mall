@@ -161,6 +161,7 @@ func UpdateProduct(ctx context.Context, c *app.RequestContext) {
 	if err != nil {
 		resp.ErrCode = base.ErrCode_UpdateProductError
 		resp.ErrMsg = err.Error()
+		c.JSON(consts.StatusInternalServerError, resp)
 		return
 	}
 

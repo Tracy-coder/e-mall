@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
@@ -29,6 +30,7 @@ type ProductQuery struct {
 	withCarousels   *CarouselQuery
 	withCategory    *CategoryQuery
 	withProductimgs *ProductImgQuery
+	withFavourite   *FavouriteQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (pq *ProductQuery) QueryProductimgs() *ProductImgQuery {
 			sqlgraph.From(product.Table, product.FieldID, selector),
 			sqlgraph.To(productimg.Table, productimg.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, product.ProductimgsTable, product.ProductimgsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFavourite chains the current query on the "favourite" edge.
+func (pq *ProductQuery) QueryFavourite() *FavouriteQuery {
+	query := (&FavouriteClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, selector),
+			sqlgraph.To(favourite.Table, favourite.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.FavouriteTable, product.FavouriteColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -326,6 +350,7 @@ func (pq *ProductQuery) Clone() *ProductQuery {
 		withCarousels:   pq.withCarousels.Clone(),
 		withCategory:    pq.withCategory.Clone(),
 		withProductimgs: pq.withProductimgs.Clone(),
+		withFavourite:   pq.withFavourite.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -362,6 +387,17 @@ func (pq *ProductQuery) WithProductimgs(opts ...func(*ProductImgQuery)) *Product
 		opt(query)
 	}
 	pq.withProductimgs = query
+	return pq
+}
+
+// WithFavourite tells the query-builder to eager-load the nodes that are connected to
+// the "favourite" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProductQuery) WithFavourite(opts ...func(*FavouriteQuery)) *ProductQuery {
+	query := (&FavouriteClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withFavourite = query
 	return pq
 }
 
@@ -443,10 +479,11 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 	var (
 		nodes       = []*Product{}
 		_spec       = pq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			pq.withCarousels != nil,
 			pq.withCategory != nil,
 			pq.withProductimgs != nil,
+			pq.withFavourite != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -484,6 +521,13 @@ func (pq *ProductQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prod
 		if err := pq.loadProductimgs(ctx, query, nodes,
 			func(n *Product) { n.Edges.Productimgs = []*ProductImg{} },
 			func(n *Product, e *ProductImg) { n.Edges.Productimgs = append(n.Edges.Productimgs, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withFavourite; query != nil {
+		if err := pq.loadFavourite(ctx, query, nodes,
+			func(n *Product) { n.Edges.Favourite = []*Favourite{} },
+			func(n *Product, e *Favourite) { n.Edges.Favourite = append(n.Edges.Favourite, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -564,6 +608,36 @@ func (pq *ProductQuery) loadProductimgs(ctx context.Context, query *ProductImgQu
 	}
 	query.Where(predicate.ProductImg(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(product.ProductimgsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ProductID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "productID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (pq *ProductQuery) loadFavourite(ctx context.Context, query *FavouriteQuery, nodes []*Product, init func(*Product), assign func(*Product, *Favourite)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uint64]*Product)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(favourite.FieldProductID)
+	}
+	query.Where(predicate.Favourite(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(product.FavouriteColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

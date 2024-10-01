@@ -49,9 +49,11 @@ type ProductEdges struct {
 	Category *Category `json:"category,omitempty"`
 	// Productimgs holds the value of the productimgs edge.
 	Productimgs []*ProductImg `json:"productimgs,omitempty"`
+	// Favourite holds the value of the favourite edge.
+	Favourite []*Favourite `json:"favourite,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // CarouselsOrErr returns the Carousels value or an error if the edge
@@ -81,6 +83,15 @@ func (e ProductEdges) ProductimgsOrErr() ([]*ProductImg, error) {
 		return e.Productimgs, nil
 	}
 	return nil, &NotLoadedError{edge: "productimgs"}
+}
+
+// FavouriteOrErr returns the Favourite value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProductEdges) FavouriteOrErr() ([]*Favourite, error) {
+	if e.loadedTypes[3] {
+		return e.Favourite, nil
+	}
+	return nil, &NotLoadedError{edge: "favourite"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -189,6 +200,11 @@ func (pr *Product) QueryCategory() *CategoryQuery {
 // QueryProductimgs queries the "productimgs" edge of the Product entity.
 func (pr *Product) QueryProductimgs() *ProductImgQuery {
 	return NewProductClient(pr.config).QueryProductimgs(pr)
+}
+
+// QueryFavourite queries the "favourite" edge of the Product entity.
+func (pr *Product) QueryFavourite() *FavouriteQuery {
+	return NewProductClient(pr.config).QueryFavourite(pr)
 }
 
 // Update returns a builder for updating this Product.

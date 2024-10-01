@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Tracy-coder/e-mall/data/ent/address"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
@@ -192,6 +194,36 @@ func (uu *UserUpdate) AddEmails(e ...*Email) *UserUpdate {
 	return uu.AddEmailIDs(ids...)
 }
 
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by IDs.
+func (uu *UserUpdate) AddFavouriteIDs(ids ...uint64) *UserUpdate {
+	uu.mutation.AddFavouriteIDs(ids...)
+	return uu
+}
+
+// AddFavourite adds the "favourite" edges to the Favourite entity.
+func (uu *UserUpdate) AddFavourite(f ...*Favourite) *UserUpdate {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uu.AddFavouriteIDs(ids...)
+}
+
+// AddAddresIDs adds the "address" edge to the Address entity by IDs.
+func (uu *UserUpdate) AddAddresIDs(ids ...uint64) *UserUpdate {
+	uu.mutation.AddAddresIDs(ids...)
+	return uu
+}
+
+// AddAddress adds the "address" edges to the Address entity.
+func (uu *UserUpdate) AddAddress(a ...*Address) *UserUpdate {
+	ids := make([]uint64, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uu.AddAddresIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -216,6 +248,48 @@ func (uu *UserUpdate) RemoveEmails(e ...*Email) *UserUpdate {
 		ids[i] = e[i].ID
 	}
 	return uu.RemoveEmailIDs(ids...)
+}
+
+// ClearFavourite clears all "favourite" edges to the Favourite entity.
+func (uu *UserUpdate) ClearFavourite() *UserUpdate {
+	uu.mutation.ClearFavourite()
+	return uu
+}
+
+// RemoveFavouriteIDs removes the "favourite" edge to Favourite entities by IDs.
+func (uu *UserUpdate) RemoveFavouriteIDs(ids ...uint64) *UserUpdate {
+	uu.mutation.RemoveFavouriteIDs(ids...)
+	return uu
+}
+
+// RemoveFavourite removes "favourite" edges to Favourite entities.
+func (uu *UserUpdate) RemoveFavourite(f ...*Favourite) *UserUpdate {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uu.RemoveFavouriteIDs(ids...)
+}
+
+// ClearAddress clears all "address" edges to the Address entity.
+func (uu *UserUpdate) ClearAddress() *UserUpdate {
+	uu.mutation.ClearAddress()
+	return uu
+}
+
+// RemoveAddresIDs removes the "address" edge to Address entities by IDs.
+func (uu *UserUpdate) RemoveAddresIDs(ids ...uint64) *UserUpdate {
+	uu.mutation.RemoveAddresIDs(ids...)
+	return uu
+}
+
+// RemoveAddress removes "address" edges to Address entities.
+func (uu *UserUpdate) RemoveAddress(a ...*Address) *UserUpdate {
+	ids := make([]uint64, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uu.RemoveAddresIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -346,6 +420,96 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(email.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FavouriteTable,
+			Columns: []string{user.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedFavouriteIDs(); len(nodes) > 0 && !uu.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FavouriteTable,
+			Columns: []string{user.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.FavouriteIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FavouriteTable,
+			Columns: []string{user.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.AddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(address.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedAddressIDs(); len(nodes) > 0 && !uu.mutation.AddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(address.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.AddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(address.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {
@@ -536,6 +700,36 @@ func (uuo *UserUpdateOne) AddEmails(e ...*Email) *UserUpdateOne {
 	return uuo.AddEmailIDs(ids...)
 }
 
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by IDs.
+func (uuo *UserUpdateOne) AddFavouriteIDs(ids ...uint64) *UserUpdateOne {
+	uuo.mutation.AddFavouriteIDs(ids...)
+	return uuo
+}
+
+// AddFavourite adds the "favourite" edges to the Favourite entity.
+func (uuo *UserUpdateOne) AddFavourite(f ...*Favourite) *UserUpdateOne {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uuo.AddFavouriteIDs(ids...)
+}
+
+// AddAddresIDs adds the "address" edge to the Address entity by IDs.
+func (uuo *UserUpdateOne) AddAddresIDs(ids ...uint64) *UserUpdateOne {
+	uuo.mutation.AddAddresIDs(ids...)
+	return uuo
+}
+
+// AddAddress adds the "address" edges to the Address entity.
+func (uuo *UserUpdateOne) AddAddress(a ...*Address) *UserUpdateOne {
+	ids := make([]uint64, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uuo.AddAddresIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -560,6 +754,48 @@ func (uuo *UserUpdateOne) RemoveEmails(e ...*Email) *UserUpdateOne {
 		ids[i] = e[i].ID
 	}
 	return uuo.RemoveEmailIDs(ids...)
+}
+
+// ClearFavourite clears all "favourite" edges to the Favourite entity.
+func (uuo *UserUpdateOne) ClearFavourite() *UserUpdateOne {
+	uuo.mutation.ClearFavourite()
+	return uuo
+}
+
+// RemoveFavouriteIDs removes the "favourite" edge to Favourite entities by IDs.
+func (uuo *UserUpdateOne) RemoveFavouriteIDs(ids ...uint64) *UserUpdateOne {
+	uuo.mutation.RemoveFavouriteIDs(ids...)
+	return uuo
+}
+
+// RemoveFavourite removes "favourite" edges to Favourite entities.
+func (uuo *UserUpdateOne) RemoveFavourite(f ...*Favourite) *UserUpdateOne {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uuo.RemoveFavouriteIDs(ids...)
+}
+
+// ClearAddress clears all "address" edges to the Address entity.
+func (uuo *UserUpdateOne) ClearAddress() *UserUpdateOne {
+	uuo.mutation.ClearAddress()
+	return uuo
+}
+
+// RemoveAddresIDs removes the "address" edge to Address entities by IDs.
+func (uuo *UserUpdateOne) RemoveAddresIDs(ids ...uint64) *UserUpdateOne {
+	uuo.mutation.RemoveAddresIDs(ids...)
+	return uuo
+}
+
+// RemoveAddress removes "address" edges to Address entities.
+func (uuo *UserUpdateOne) RemoveAddress(a ...*Address) *UserUpdateOne {
+	ids := make([]uint64, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uuo.RemoveAddresIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -720,6 +956,96 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(email.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FavouriteTable,
+			Columns: []string{user.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedFavouriteIDs(); len(nodes) > 0 && !uuo.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FavouriteTable,
+			Columns: []string{user.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.FavouriteIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FavouriteTable,
+			Columns: []string{user.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.AddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(address.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedAddressIDs(); len(nodes) > 0 && !uuo.mutation.AddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(address.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.AddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(address.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {

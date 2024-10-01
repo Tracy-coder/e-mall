@@ -10,7 +10,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/Tracy-coder/e-mall/data/ent/address"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
 
@@ -150,6 +152,36 @@ func (uc *UserCreate) AddEmails(e ...*Email) *UserCreate {
 		ids[i] = e[i].ID
 	}
 	return uc.AddEmailIDs(ids...)
+}
+
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by IDs.
+func (uc *UserCreate) AddFavouriteIDs(ids ...uint64) *UserCreate {
+	uc.mutation.AddFavouriteIDs(ids...)
+	return uc
+}
+
+// AddFavourite adds the "favourite" edges to the Favourite entity.
+func (uc *UserCreate) AddFavourite(f ...*Favourite) *UserCreate {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uc.AddFavouriteIDs(ids...)
+}
+
+// AddAddresIDs adds the "address" edge to the Address entity by IDs.
+func (uc *UserCreate) AddAddresIDs(ids ...uint64) *UserCreate {
+	uc.mutation.AddAddresIDs(ids...)
+	return uc
+}
+
+// AddAddress adds the "address" edges to the Address entity.
+func (uc *UserCreate) AddAddress(a ...*Address) *UserCreate {
+	ids := make([]uint64, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddAddresIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -296,6 +328,38 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(email.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.FavouriteIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FavouriteTable,
+			Columns: []string{user.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(address.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {

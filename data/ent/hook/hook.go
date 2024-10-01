@@ -9,6 +9,18 @@ import (
 	"github.com/Tracy-coder/e-mall/data/ent"
 )
 
+// The AddressFunc type is an adapter to allow the use of ordinary
+// function as Address mutator.
+type AddressFunc func(context.Context, *ent.AddressMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AddressMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AddressMutation", m)
+}
+
 // The CarouselFunc type is an adapter to allow the use of ordinary
 // function as Carousel mutator.
 type CarouselFunc func(context.Context, *ent.CarouselMutation) (ent.Value, error)
@@ -43,6 +55,30 @@ func (f EmailFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailMutation", m)
+}
+
+// The FavouriteFunc type is an adapter to allow the use of ordinary
+// function as Favourite mutator.
+type FavouriteFunc func(context.Context, *ent.FavouriteMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FavouriteFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FavouriteMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FavouriteMutation", m)
+}
+
+// The NoticeFunc type is an adapter to allow the use of ordinary
+// function as Notice mutator.
+type NoticeFunc func(context.Context, *ent.NoticeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NoticeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.NoticeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NoticeMutation", m)
 }
 
 // The ProductFunc type is an adapter to allow the use of ordinary

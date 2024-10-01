@@ -34,6 +34,10 @@ const (
 	FieldGithubID = "github_id"
 	// EdgeEmails holds the string denoting the emails edge name in mutations.
 	EdgeEmails = "emails"
+	// EdgeFavourite holds the string denoting the favourite edge name in mutations.
+	EdgeFavourite = "favourite"
+	// EdgeAddress holds the string denoting the address edge name in mutations.
+	EdgeAddress = "address"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// EmailsTable is the table that holds the emails relation/edge.
@@ -43,6 +47,20 @@ const (
 	EmailsInverseTable = "emails"
 	// EmailsColumn is the table column denoting the emails relation/edge.
 	EmailsColumn = "user_emails"
+	// FavouriteTable is the table that holds the favourite relation/edge.
+	FavouriteTable = "favourites"
+	// FavouriteInverseTable is the table name for the Favourite entity.
+	// It exists in this package in order to avoid circular dependency with the "favourite" package.
+	FavouriteInverseTable = "favourites"
+	// FavouriteColumn is the table column denoting the favourite relation/edge.
+	FavouriteColumn = "user_id"
+	// AddressTable is the table that holds the address relation/edge.
+	AddressTable = "addresses"
+	// AddressInverseTable is the table name for the Address entity.
+	// It exists in this package in order to avoid circular dependency with the "address" package.
+	AddressInverseTable = "addresses"
+	// AddressColumn is the table column denoting the address relation/edge.
+	AddressColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -148,10 +166,52 @@ func ByEmails(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newEmailsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFavouriteCount orders the results by favourite count.
+func ByFavouriteCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFavouriteStep(), opts...)
+	}
+}
+
+// ByFavourite orders the results by favourite terms.
+func ByFavourite(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFavouriteStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAddressCount orders the results by address count.
+func ByAddressCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAddressStep(), opts...)
+	}
+}
+
+// ByAddress orders the results by address terms.
+func ByAddress(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAddressStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newEmailsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EmailsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EmailsTable, EmailsColumn),
+	)
+}
+func newFavouriteStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FavouriteInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FavouriteTable, FavouriteColumn),
+	)
+}
+func newAddressStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AddressInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AddressTable, AddressColumn),
 	)
 }

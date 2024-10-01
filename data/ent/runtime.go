@@ -5,9 +5,12 @@ package ent
 import (
 	"time"
 
+	"github.com/Tracy-coder/e-mall/data/ent/address"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
+	"github.com/Tracy-coder/e-mall/data/ent/notice"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 	"github.com/Tracy-coder/e-mall/data/ent/schema"
@@ -18,6 +21,21 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	addressMixin := schema.Address{}.Mixin()
+	addressMixinFields0 := addressMixin[0].Fields()
+	_ = addressMixinFields0
+	addressFields := schema.Address{}.Fields()
+	_ = addressFields
+	// addressDescCreatedAt is the schema descriptor for created_at field.
+	addressDescCreatedAt := addressMixinFields0[1].Descriptor()
+	// address.DefaultCreatedAt holds the default value on creation for the created_at field.
+	address.DefaultCreatedAt = addressDescCreatedAt.Default.(func() time.Time)
+	// addressDescUpdatedAt is the schema descriptor for updated_at field.
+	addressDescUpdatedAt := addressMixinFields0[2].Descriptor()
+	// address.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	address.DefaultUpdatedAt = addressDescUpdatedAt.Default.(func() time.Time)
+	// address.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	address.UpdateDefaultUpdatedAt = addressDescUpdatedAt.UpdateDefault.(func() time.Time)
 	carouselMixin := schema.Carousel{}.Mixin()
 	carouselMixinFields0 := carouselMixin[0].Fields()
 	_ = carouselMixinFields0
@@ -70,6 +88,36 @@ func init() {
 	emailDescIsVerified := emailFields[1].Descriptor()
 	// email.DefaultIsVerified holds the default value on creation for the is_verified field.
 	email.DefaultIsVerified = emailDescIsVerified.Default.(bool)
+	favouriteMixin := schema.Favourite{}.Mixin()
+	favouriteMixinFields0 := favouriteMixin[0].Fields()
+	_ = favouriteMixinFields0
+	favouriteFields := schema.Favourite{}.Fields()
+	_ = favouriteFields
+	// favouriteDescCreatedAt is the schema descriptor for created_at field.
+	favouriteDescCreatedAt := favouriteMixinFields0[1].Descriptor()
+	// favourite.DefaultCreatedAt holds the default value on creation for the created_at field.
+	favourite.DefaultCreatedAt = favouriteDescCreatedAt.Default.(func() time.Time)
+	// favouriteDescUpdatedAt is the schema descriptor for updated_at field.
+	favouriteDescUpdatedAt := favouriteMixinFields0[2].Descriptor()
+	// favourite.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	favourite.DefaultUpdatedAt = favouriteDescUpdatedAt.Default.(func() time.Time)
+	// favourite.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	favourite.UpdateDefaultUpdatedAt = favouriteDescUpdatedAt.UpdateDefault.(func() time.Time)
+	noticeMixin := schema.Notice{}.Mixin()
+	noticeMixinFields0 := noticeMixin[0].Fields()
+	_ = noticeMixinFields0
+	noticeFields := schema.Notice{}.Fields()
+	_ = noticeFields
+	// noticeDescCreatedAt is the schema descriptor for created_at field.
+	noticeDescCreatedAt := noticeMixinFields0[1].Descriptor()
+	// notice.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notice.DefaultCreatedAt = noticeDescCreatedAt.Default.(func() time.Time)
+	// noticeDescUpdatedAt is the schema descriptor for updated_at field.
+	noticeDescUpdatedAt := noticeMixinFields0[2].Descriptor()
+	// notice.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notice.DefaultUpdatedAt = noticeDescUpdatedAt.Default.(func() time.Time)
+	// notice.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notice.UpdateDefaultUpdatedAt = noticeDescUpdatedAt.UpdateDefault.(func() time.Time)
 	productMixin := schema.Product{}.Mixin()
 	productMixinFields0 := productMixin[0].Fields()
 	_ = productMixinFields0

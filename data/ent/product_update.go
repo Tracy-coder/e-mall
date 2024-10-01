@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
@@ -182,6 +183,21 @@ func (pu *ProductUpdate) AddProductimgs(p ...*ProductImg) *ProductUpdate {
 	return pu.AddProductimgIDs(ids...)
 }
 
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by IDs.
+func (pu *ProductUpdate) AddFavouriteIDs(ids ...uint64) *ProductUpdate {
+	pu.mutation.AddFavouriteIDs(ids...)
+	return pu
+}
+
+// AddFavourite adds the "favourite" edges to the Favourite entity.
+func (pu *ProductUpdate) AddFavourite(f ...*Favourite) *ProductUpdate {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return pu.AddFavouriteIDs(ids...)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pu *ProductUpdate) Mutation() *ProductMutation {
 	return pu.mutation
@@ -233,6 +249,27 @@ func (pu *ProductUpdate) RemoveProductimgs(p ...*ProductImg) *ProductUpdate {
 		ids[i] = p[i].ID
 	}
 	return pu.RemoveProductimgIDs(ids...)
+}
+
+// ClearFavourite clears all "favourite" edges to the Favourite entity.
+func (pu *ProductUpdate) ClearFavourite() *ProductUpdate {
+	pu.mutation.ClearFavourite()
+	return pu
+}
+
+// RemoveFavouriteIDs removes the "favourite" edge to Favourite entities by IDs.
+func (pu *ProductUpdate) RemoveFavouriteIDs(ids ...uint64) *ProductUpdate {
+	pu.mutation.RemoveFavouriteIDs(ids...)
+	return pu
+}
+
+// RemoveFavourite removes "favourite" edges to Favourite entities.
+func (pu *ProductUpdate) RemoveFavourite(f ...*Favourite) *ProductUpdate {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return pu.RemoveFavouriteIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -426,6 +463,51 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if pu.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.FavouriteTable,
+			Columns: []string{product.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedFavouriteIDs(); len(nodes) > 0 && !pu.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.FavouriteTable,
+			Columns: []string{product.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.FavouriteIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.FavouriteTable,
+			Columns: []string{product.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{product.Label}
@@ -597,6 +679,21 @@ func (puo *ProductUpdateOne) AddProductimgs(p ...*ProductImg) *ProductUpdateOne 
 	return puo.AddProductimgIDs(ids...)
 }
 
+// AddFavouriteIDs adds the "favourite" edge to the Favourite entity by IDs.
+func (puo *ProductUpdateOne) AddFavouriteIDs(ids ...uint64) *ProductUpdateOne {
+	puo.mutation.AddFavouriteIDs(ids...)
+	return puo
+}
+
+// AddFavourite adds the "favourite" edges to the Favourite entity.
+func (puo *ProductUpdateOne) AddFavourite(f ...*Favourite) *ProductUpdateOne {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return puo.AddFavouriteIDs(ids...)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (puo *ProductUpdateOne) Mutation() *ProductMutation {
 	return puo.mutation
@@ -648,6 +745,27 @@ func (puo *ProductUpdateOne) RemoveProductimgs(p ...*ProductImg) *ProductUpdateO
 		ids[i] = p[i].ID
 	}
 	return puo.RemoveProductimgIDs(ids...)
+}
+
+// ClearFavourite clears all "favourite" edges to the Favourite entity.
+func (puo *ProductUpdateOne) ClearFavourite() *ProductUpdateOne {
+	puo.mutation.ClearFavourite()
+	return puo
+}
+
+// RemoveFavouriteIDs removes the "favourite" edge to Favourite entities by IDs.
+func (puo *ProductUpdateOne) RemoveFavouriteIDs(ids ...uint64) *ProductUpdateOne {
+	puo.mutation.RemoveFavouriteIDs(ids...)
+	return puo
+}
+
+// RemoveFavourite removes "favourite" edges to Favourite entities.
+func (puo *ProductUpdateOne) RemoveFavourite(f ...*Favourite) *ProductUpdateOne {
+	ids := make([]uint64, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return puo.RemoveFavouriteIDs(ids...)
 }
 
 // Where appends a list predicates to the ProductUpdate builder.
@@ -864,6 +982,51 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(productimg.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.FavouriteTable,
+			Columns: []string{product.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedFavouriteIDs(); len(nodes) > 0 && !puo.mutation.FavouriteCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.FavouriteTable,
+			Columns: []string{product.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.FavouriteIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.FavouriteTable,
+			Columns: []string{product.FavouriteColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {

@@ -8,6 +8,30 @@ import (
 )
 
 var (
+	// AddressesColumns holds the columns for the "addresses" table.
+	AddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "phone", Type: field.TypeString},
+		{Name: "address", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeUint64, Nullable: true},
+	}
+	// AddressesTable holds the schema information for the "addresses" table.
+	AddressesTable = &schema.Table{
+		Name:       "addresses",
+		Columns:    AddressesColumns,
+		PrimaryKey: []*schema.Column{AddressesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "addresses_users_address",
+				Columns:    []*schema.Column{AddressesColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CarouselsColumns holds the columns for the "carousels" table.
 	CarouselsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
@@ -68,6 +92,47 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// FavouritesColumns holds the columns for the "favourites" table.
+	FavouritesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "product_id", Type: field.TypeUint64, Nullable: true},
+		{Name: "user_id", Type: field.TypeUint64, Nullable: true},
+	}
+	// FavouritesTable holds the schema information for the "favourites" table.
+	FavouritesTable = &schema.Table{
+		Name:       "favourites",
+		Columns:    FavouritesColumns,
+		PrimaryKey: []*schema.Column{FavouritesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "favourites_products_favourite",
+				Columns:    []*schema.Column{FavouritesColumns[3]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "favourites_users_favourite",
+				Columns:    []*schema.Column{FavouritesColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// NoticesColumns holds the columns for the "notices" table.
+	NoticesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "text", Type: field.TypeString},
+	}
+	// NoticesTable holds the schema information for the "notices" table.
+	NoticesTable = &schema.Table{
+		Name:       "notices",
+		Columns:    NoticesColumns,
+		PrimaryKey: []*schema.Column{NoticesColumns[0]},
 	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
@@ -138,9 +203,12 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AddressesTable,
 		CarouselsTable,
 		CategoriesTable,
 		EmailsTable,
+		FavouritesTable,
+		NoticesTable,
 		ProductsTable,
 		ProductImgsTable,
 		UsersTable,
@@ -148,8 +216,11 @@ var (
 )
 
 func init() {
+	AddressesTable.ForeignKeys[0].RefTable = UsersTable
 	CarouselsTable.ForeignKeys[0].RefTable = ProductsTable
 	EmailsTable.ForeignKeys[0].RefTable = UsersTable
+	FavouritesTable.ForeignKeys[0].RefTable = ProductsTable
+	FavouritesTable.ForeignKeys[1].RefTable = UsersTable
 	ProductsTable.ForeignKeys[0].RefTable = CategoriesTable
 	ProductImgsTable.ForeignKeys[0].RefTable = ProductsTable
 }

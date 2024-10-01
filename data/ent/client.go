@@ -15,9 +15,12 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/Tracy-coder/e-mall/data/ent/address"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
+	"github.com/Tracy-coder/e-mall/data/ent/favourite"
+	"github.com/Tracy-coder/e-mall/data/ent/notice"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
@@ -28,12 +31,18 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Address is the client for interacting with the Address builders.
+	Address *AddressClient
 	// Carousel is the client for interacting with the Carousel builders.
 	Carousel *CarouselClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Email is the client for interacting with the Email builders.
 	Email *EmailClient
+	// Favourite is the client for interacting with the Favourite builders.
+	Favourite *FavouriteClient
+	// Notice is the client for interacting with the Notice builders.
+	Notice *NoticeClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// ProductImg is the client for interacting with the ProductImg builders.
@@ -51,9 +60,12 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Address = NewAddressClient(c.config)
 	c.Carousel = NewCarouselClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.Email = NewEmailClient(c.config)
+	c.Favourite = NewFavouriteClient(c.config)
+	c.Notice = NewNoticeClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.ProductImg = NewProductImgClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -149,9 +161,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:        ctx,
 		config:     cfg,
+		Address:    NewAddressClient(cfg),
 		Carousel:   NewCarouselClient(cfg),
 		Category:   NewCategoryClient(cfg),
 		Email:      NewEmailClient(cfg),
+		Favourite:  NewFavouriteClient(cfg),
+		Notice:     NewNoticeClient(cfg),
 		Product:    NewProductClient(cfg),
 		ProductImg: NewProductImgClient(cfg),
 		User:       NewUserClient(cfg),
@@ -174,9 +189,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:        ctx,
 		config:     cfg,
+		Address:    NewAddressClient(cfg),
 		Carousel:   NewCarouselClient(cfg),
 		Category:   NewCategoryClient(cfg),
 		Email:      NewEmailClient(cfg),
+		Favourite:  NewFavouriteClient(cfg),
+		Notice:     NewNoticeClient(cfg),
 		Product:    NewProductClient(cfg),
 		ProductImg: NewProductImgClient(cfg),
 		User:       NewUserClient(cfg),
@@ -186,7 +204,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Carousel.
+//		Address.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -209,7 +227,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Carousel, c.Category, c.Email, c.Product, c.ProductImg, c.User,
+		c.Address, c.Carousel, c.Category, c.Email, c.Favourite, c.Notice, c.Product,
+		c.ProductImg, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -219,7 +238,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Carousel, c.Category, c.Email, c.Product, c.ProductImg, c.User,
+		c.Address, c.Carousel, c.Category, c.Email, c.Favourite, c.Notice, c.Product,
+		c.ProductImg, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -228,12 +248,18 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AddressMutation:
+		return c.Address.mutate(ctx, m)
 	case *CarouselMutation:
 		return c.Carousel.mutate(ctx, m)
 	case *CategoryMutation:
 		return c.Category.mutate(ctx, m)
 	case *EmailMutation:
 		return c.Email.mutate(ctx, m)
+	case *FavouriteMutation:
+		return c.Favourite.mutate(ctx, m)
+	case *NoticeMutation:
+		return c.Notice.mutate(ctx, m)
 	case *ProductMutation:
 		return c.Product.mutate(ctx, m)
 	case *ProductImgMutation:
@@ -242,6 +268,155 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AddressClient is a client for the Address schema.
+type AddressClient struct {
+	config
+}
+
+// NewAddressClient returns a client for the Address from the given config.
+func NewAddressClient(c config) *AddressClient {
+	return &AddressClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `address.Hooks(f(g(h())))`.
+func (c *AddressClient) Use(hooks ...Hook) {
+	c.hooks.Address = append(c.hooks.Address, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `address.Intercept(f(g(h())))`.
+func (c *AddressClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Address = append(c.inters.Address, interceptors...)
+}
+
+// Create returns a builder for creating a Address entity.
+func (c *AddressClient) Create() *AddressCreate {
+	mutation := newAddressMutation(c.config, OpCreate)
+	return &AddressCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Address entities.
+func (c *AddressClient) CreateBulk(builders ...*AddressCreate) *AddressCreateBulk {
+	return &AddressCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AddressClient) MapCreateBulk(slice any, setFunc func(*AddressCreate, int)) *AddressCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AddressCreateBulk{err: fmt.Errorf("calling to AddressClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AddressCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AddressCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Address.
+func (c *AddressClient) Update() *AddressUpdate {
+	mutation := newAddressMutation(c.config, OpUpdate)
+	return &AddressUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AddressClient) UpdateOne(a *Address) *AddressUpdateOne {
+	mutation := newAddressMutation(c.config, OpUpdateOne, withAddress(a))
+	return &AddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AddressClient) UpdateOneID(id uint64) *AddressUpdateOne {
+	mutation := newAddressMutation(c.config, OpUpdateOne, withAddressID(id))
+	return &AddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Address.
+func (c *AddressClient) Delete() *AddressDelete {
+	mutation := newAddressMutation(c.config, OpDelete)
+	return &AddressDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AddressClient) DeleteOne(a *Address) *AddressDeleteOne {
+	return c.DeleteOneID(a.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AddressClient) DeleteOneID(id uint64) *AddressDeleteOne {
+	builder := c.Delete().Where(address.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AddressDeleteOne{builder}
+}
+
+// Query returns a query builder for Address.
+func (c *AddressClient) Query() *AddressQuery {
+	return &AddressQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAddress},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Address entity by its id.
+func (c *AddressClient) Get(ctx context.Context, id uint64) (*Address, error) {
+	return c.Query().Where(address.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AddressClient) GetX(ctx context.Context, id uint64) *Address {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUserAddress queries the user_address edge of a Address.
+func (c *AddressClient) QueryUserAddress(a *Address) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(address.Table, address.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, address.UserAddressTable, address.UserAddressColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AddressClient) Hooks() []Hook {
+	return c.hooks.Address
+}
+
+// Interceptors returns the client interceptors.
+func (c *AddressClient) Interceptors() []Interceptor {
+	return c.inters.Address
+}
+
+func (c *AddressClient) mutate(ctx context.Context, m *AddressMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AddressCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AddressUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AddressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Address mutation op: %q", m.Op())
 	}
 }
 
@@ -692,6 +867,304 @@ func (c *EmailClient) mutate(ctx context.Context, m *EmailMutation) (Value, erro
 	}
 }
 
+// FavouriteClient is a client for the Favourite schema.
+type FavouriteClient struct {
+	config
+}
+
+// NewFavouriteClient returns a client for the Favourite from the given config.
+func NewFavouriteClient(c config) *FavouriteClient {
+	return &FavouriteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `favourite.Hooks(f(g(h())))`.
+func (c *FavouriteClient) Use(hooks ...Hook) {
+	c.hooks.Favourite = append(c.hooks.Favourite, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `favourite.Intercept(f(g(h())))`.
+func (c *FavouriteClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Favourite = append(c.inters.Favourite, interceptors...)
+}
+
+// Create returns a builder for creating a Favourite entity.
+func (c *FavouriteClient) Create() *FavouriteCreate {
+	mutation := newFavouriteMutation(c.config, OpCreate)
+	return &FavouriteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Favourite entities.
+func (c *FavouriteClient) CreateBulk(builders ...*FavouriteCreate) *FavouriteCreateBulk {
+	return &FavouriteCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FavouriteClient) MapCreateBulk(slice any, setFunc func(*FavouriteCreate, int)) *FavouriteCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FavouriteCreateBulk{err: fmt.Errorf("calling to FavouriteClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FavouriteCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FavouriteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Favourite.
+func (c *FavouriteClient) Update() *FavouriteUpdate {
+	mutation := newFavouriteMutation(c.config, OpUpdate)
+	return &FavouriteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FavouriteClient) UpdateOne(f *Favourite) *FavouriteUpdateOne {
+	mutation := newFavouriteMutation(c.config, OpUpdateOne, withFavourite(f))
+	return &FavouriteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FavouriteClient) UpdateOneID(id uint64) *FavouriteUpdateOne {
+	mutation := newFavouriteMutation(c.config, OpUpdateOne, withFavouriteID(id))
+	return &FavouriteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Favourite.
+func (c *FavouriteClient) Delete() *FavouriteDelete {
+	mutation := newFavouriteMutation(c.config, OpDelete)
+	return &FavouriteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FavouriteClient) DeleteOne(f *Favourite) *FavouriteDeleteOne {
+	return c.DeleteOneID(f.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FavouriteClient) DeleteOneID(id uint64) *FavouriteDeleteOne {
+	builder := c.Delete().Where(favourite.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FavouriteDeleteOne{builder}
+}
+
+// Query returns a query builder for Favourite.
+func (c *FavouriteClient) Query() *FavouriteQuery {
+	return &FavouriteQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFavourite},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Favourite entity by its id.
+func (c *FavouriteClient) Get(ctx context.Context, id uint64) (*Favourite, error) {
+	return c.Query().Where(favourite.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FavouriteClient) GetX(ctx context.Context, id uint64) *Favourite {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProductFavourite queries the product_favourite edge of a Favourite.
+func (c *FavouriteClient) QueryProductFavourite(f *Favourite) *ProductQuery {
+	query := (&ProductClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(favourite.Table, favourite.FieldID, id),
+			sqlgraph.To(product.Table, product.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, favourite.ProductFavouriteTable, favourite.ProductFavouriteColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserFavourite queries the user_favourite edge of a Favourite.
+func (c *FavouriteClient) QueryUserFavourite(f *Favourite) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(favourite.Table, favourite.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, favourite.UserFavouriteTable, favourite.UserFavouriteColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FavouriteClient) Hooks() []Hook {
+	return c.hooks.Favourite
+}
+
+// Interceptors returns the client interceptors.
+func (c *FavouriteClient) Interceptors() []Interceptor {
+	return c.inters.Favourite
+}
+
+func (c *FavouriteClient) mutate(ctx context.Context, m *FavouriteMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FavouriteCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FavouriteUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FavouriteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FavouriteDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Favourite mutation op: %q", m.Op())
+	}
+}
+
+// NoticeClient is a client for the Notice schema.
+type NoticeClient struct {
+	config
+}
+
+// NewNoticeClient returns a client for the Notice from the given config.
+func NewNoticeClient(c config) *NoticeClient {
+	return &NoticeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notice.Hooks(f(g(h())))`.
+func (c *NoticeClient) Use(hooks ...Hook) {
+	c.hooks.Notice = append(c.hooks.Notice, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notice.Intercept(f(g(h())))`.
+func (c *NoticeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Notice = append(c.inters.Notice, interceptors...)
+}
+
+// Create returns a builder for creating a Notice entity.
+func (c *NoticeClient) Create() *NoticeCreate {
+	mutation := newNoticeMutation(c.config, OpCreate)
+	return &NoticeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Notice entities.
+func (c *NoticeClient) CreateBulk(builders ...*NoticeCreate) *NoticeCreateBulk {
+	return &NoticeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NoticeClient) MapCreateBulk(slice any, setFunc func(*NoticeCreate, int)) *NoticeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NoticeCreateBulk{err: fmt.Errorf("calling to NoticeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NoticeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NoticeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Notice.
+func (c *NoticeClient) Update() *NoticeUpdate {
+	mutation := newNoticeMutation(c.config, OpUpdate)
+	return &NoticeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NoticeClient) UpdateOne(n *Notice) *NoticeUpdateOne {
+	mutation := newNoticeMutation(c.config, OpUpdateOne, withNotice(n))
+	return &NoticeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NoticeClient) UpdateOneID(id uint64) *NoticeUpdateOne {
+	mutation := newNoticeMutation(c.config, OpUpdateOne, withNoticeID(id))
+	return &NoticeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Notice.
+func (c *NoticeClient) Delete() *NoticeDelete {
+	mutation := newNoticeMutation(c.config, OpDelete)
+	return &NoticeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NoticeClient) DeleteOne(n *Notice) *NoticeDeleteOne {
+	return c.DeleteOneID(n.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NoticeClient) DeleteOneID(id uint64) *NoticeDeleteOne {
+	builder := c.Delete().Where(notice.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NoticeDeleteOne{builder}
+}
+
+// Query returns a query builder for Notice.
+func (c *NoticeClient) Query() *NoticeQuery {
+	return &NoticeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotice},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Notice entity by its id.
+func (c *NoticeClient) Get(ctx context.Context, id uint64) (*Notice, error) {
+	return c.Query().Where(notice.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NoticeClient) GetX(ctx context.Context, id uint64) *Notice {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NoticeClient) Hooks() []Hook {
+	return c.hooks.Notice
+}
+
+// Interceptors returns the client interceptors.
+func (c *NoticeClient) Interceptors() []Interceptor {
+	return c.inters.Notice
+}
+
+func (c *NoticeClient) mutate(ctx context.Context, m *NoticeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NoticeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NoticeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NoticeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NoticeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Notice mutation op: %q", m.Op())
+	}
+}
+
 // ProductClient is a client for the Product schema.
 type ProductClient struct {
 	config
@@ -841,6 +1314,22 @@ func (c *ProductClient) QueryProductimgs(pr *Product) *ProductImgQuery {
 			sqlgraph.From(product.Table, product.FieldID, id),
 			sqlgraph.To(productimg.Table, productimg.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, product.ProductimgsTable, product.ProductimgsColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFavourite queries the favourite edge of a Product.
+func (c *ProductClient) QueryFavourite(pr *Product) *FavouriteQuery {
+	query := (&FavouriteClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(product.Table, product.FieldID, id),
+			sqlgraph.To(favourite.Table, favourite.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, product.FavouriteTable, product.FavouriteColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -1146,6 +1635,38 @@ func (c *UserClient) QueryEmails(u *User) *EmailQuery {
 	return query
 }
 
+// QueryFavourite queries the favourite edge of a User.
+func (c *UserClient) QueryFavourite(u *User) *FavouriteQuery {
+	query := (&FavouriteClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(favourite.Table, favourite.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.FavouriteTable, user.FavouriteColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddress queries the address edge of a User.
+func (c *UserClient) QueryAddress(u *User) *AddressQuery {
+	query := (&AddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(address.Table, address.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AddressTable, user.AddressColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1174,9 +1695,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Carousel, Category, Email, Product, ProductImg, User []ent.Hook
+		Address, Carousel, Category, Email, Favourite, Notice, Product, ProductImg,
+		User []ent.Hook
 	}
 	inters struct {
-		Carousel, Category, Email, Product, ProductImg, User []ent.Interceptor
+		Address, Carousel, Category, Email, Favourite, Notice, Product, ProductImg,
+		User []ent.Interceptor
 	}
 )

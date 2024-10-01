@@ -153,3 +153,53 @@ func _showproductrankingsMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _shownoticesMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _deletenoticeMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createnoticeMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _deletefavouriteMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showfavouritesMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createfavouriteMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _deleteaddressMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showaddressMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createaddressMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _updateaddressMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

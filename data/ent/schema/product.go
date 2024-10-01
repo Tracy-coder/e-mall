@@ -31,6 +31,7 @@ func (Product) Edges() []ent.Edge {
 		edge.To("carousels", Carousel.Type),
 		edge.From("category", Category.Type).Ref("product").Field("categoryID").Unique(),
 		edge.To("productimgs", ProductImg.Type),
+		edge.To("favourite", Favourite.Type),
 	}
 }
 

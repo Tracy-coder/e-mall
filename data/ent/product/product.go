@@ -36,6 +36,8 @@ const (
 	EdgeCategory = "category"
 	// EdgeProductimgs holds the string denoting the productimgs edge name in mutations.
 	EdgeProductimgs = "productimgs"
+	// EdgeFavourite holds the string denoting the favourite edge name in mutations.
+	EdgeFavourite = "favourite"
 	// Table holds the table name of the product in the database.
 	Table = "products"
 	// CarouselsTable is the table that holds the carousels relation/edge.
@@ -59,6 +61,13 @@ const (
 	ProductimgsInverseTable = "product_imgs"
 	// ProductimgsColumn is the table column denoting the productimgs relation/edge.
 	ProductimgsColumn = "product_id"
+	// FavouriteTable is the table that holds the favourite relation/edge.
+	FavouriteTable = "favourites"
+	// FavouriteInverseTable is the table name for the Favourite entity.
+	// It exists in this package in order to avoid circular dependency with the "favourite" package.
+	FavouriteInverseTable = "favourites"
+	// FavouriteColumn is the table column denoting the favourite relation/edge.
+	FavouriteColumn = "product_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -175,6 +184,20 @@ func ByProductimgs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newProductimgsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFavouriteCount orders the results by favourite count.
+func ByFavouriteCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFavouriteStep(), opts...)
+	}
+}
+
+// ByFavourite orders the results by favourite terms.
+func ByFavourite(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFavouriteStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCarouselsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -194,5 +217,12 @@ func newProductimgsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProductimgsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ProductimgsTable, ProductimgsColumn),
+	)
+}
+func newFavouriteStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FavouriteInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FavouriteTable, FavouriteColumn),
 	)
 }

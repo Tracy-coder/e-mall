@@ -46,9 +46,13 @@ type User struct {
 type UserEdges struct {
 	// Emails holds the value of the emails edge.
 	Emails []*Email `json:"emails,omitempty"`
+	// Favourite holds the value of the favourite edge.
+	Favourite []*Favourite `json:"favourite,omitempty"`
+	// Address holds the value of the address edge.
+	Address []*Address `json:"address,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [3]bool
 }
 
 // EmailsOrErr returns the Emails value or an error if the edge
@@ -58,6 +62,24 @@ func (e UserEdges) EmailsOrErr() ([]*Email, error) {
 		return e.Emails, nil
 	}
 	return nil, &NotLoadedError{edge: "emails"}
+}
+
+// FavouriteOrErr returns the Favourite value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FavouriteOrErr() ([]*Favourite, error) {
+	if e.loadedTypes[1] {
+		return e.Favourite, nil
+	}
+	return nil, &NotLoadedError{edge: "favourite"}
+}
+
+// AddressOrErr returns the Address value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AddressOrErr() ([]*Address, error) {
+	if e.loadedTypes[2] {
+		return e.Address, nil
+	}
+	return nil, &NotLoadedError{edge: "address"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -162,6 +184,16 @@ func (u *User) Value(name string) (ent.Value, error) {
 // QueryEmails queries the "emails" edge of the User entity.
 func (u *User) QueryEmails() *EmailQuery {
 	return NewUserClient(u.config).QueryEmails(u)
+}
+
+// QueryFavourite queries the "favourite" edge of the User entity.
+func (u *User) QueryFavourite() *FavouriteQuery {
+	return NewUserClient(u.config).QueryFavourite(u)
+}
+
+// QueryAddress queries the "address" edge of the User entity.
+func (u *User) QueryAddress() *AddressQuery {
+	return NewUserClient(u.config).QueryAddress(u)
 }
 
 // Update returns a builder for updating this User.
