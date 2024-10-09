@@ -11,8 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/cart"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/favourite"
+	"github.com/Tracy-coder/e-mall/data/ent/order"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 )
@@ -158,6 +160,36 @@ func (pc *ProductCreate) AddFavourite(f ...*Favourite) *ProductCreate {
 		ids[i] = f[i].ID
 	}
 	return pc.AddFavouriteIDs(ids...)
+}
+
+// AddCartIDs adds the "cart" edge to the Cart entity by IDs.
+func (pc *ProductCreate) AddCartIDs(ids ...uint64) *ProductCreate {
+	pc.mutation.AddCartIDs(ids...)
+	return pc
+}
+
+// AddCart adds the "cart" edges to the Cart entity.
+func (pc *ProductCreate) AddCart(c ...*Cart) *ProductCreate {
+	ids := make([]uint64, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddCartIDs(ids...)
+}
+
+// AddOrderIDs adds the "order" edge to the Order entity by IDs.
+func (pc *ProductCreate) AddOrderIDs(ids ...uint64) *ProductCreate {
+	pc.mutation.AddOrderIDs(ids...)
+	return pc
+}
+
+// AddOrder adds the "order" edges to the Order entity.
+func (pc *ProductCreate) AddOrder(o ...*Order) *ProductCreate {
+	ids := make([]uint64, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return pc.AddOrderIDs(ids...)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -343,6 +375,38 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(favourite.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.CartIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.CartTable,
+			Columns: []string{product.CartColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(cart.FieldID, field.TypeUint64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.OrderIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   product.OrderTable,
+			Columns: []string{product.OrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(order.FieldID, field.TypeUint64),
 			},
 		}
 		for _, k := range nodes {

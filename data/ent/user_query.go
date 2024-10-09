@@ -13,8 +13,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/Tracy-coder/e-mall/data/ent/address"
+	"github.com/Tracy-coder/e-mall/data/ent/cart"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/favourite"
+	"github.com/Tracy-coder/e-mall/data/ent/order"
 	"github.com/Tracy-coder/e-mall/data/ent/predicate"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
 )
@@ -29,6 +31,8 @@ type UserQuery struct {
 	withEmails    *EmailQuery
 	withFavourite *FavouriteQuery
 	withAddress   *AddressQuery
+	withCart      *CartQuery
+	withOrder     *OrderQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +128,50 @@ func (uq *UserQuery) QueryAddress() *AddressQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(address.Table, address.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.AddressTable, user.AddressColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCart chains the current query on the "cart" edge.
+func (uq *UserQuery) QueryCart() *CartQuery {
+	query := (&CartClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(cart.Table, cart.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.CartTable, user.CartColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOrder chains the current query on the "order" edge.
+func (uq *UserQuery) QueryOrder() *OrderQuery {
+	query := (&OrderClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(order.Table, order.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.OrderTable, user.OrderColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -326,6 +374,8 @@ func (uq *UserQuery) Clone() *UserQuery {
 		withEmails:    uq.withEmails.Clone(),
 		withFavourite: uq.withFavourite.Clone(),
 		withAddress:   uq.withAddress.Clone(),
+		withCart:      uq.withCart.Clone(),
+		withOrder:     uq.withOrder.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -362,6 +412,28 @@ func (uq *UserQuery) WithAddress(opts ...func(*AddressQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withAddress = query
+	return uq
+}
+
+// WithCart tells the query-builder to eager-load the nodes that are connected to
+// the "cart" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCart(opts ...func(*CartQuery)) *UserQuery {
+	query := (&CartClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCart = query
+	return uq
+}
+
+// WithOrder tells the query-builder to eager-load the nodes that are connected to
+// the "order" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithOrder(opts ...func(*OrderQuery)) *UserQuery {
+	query := (&OrderClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withOrder = query
 	return uq
 }
 
@@ -443,10 +515,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [5]bool{
 			uq.withEmails != nil,
 			uq.withFavourite != nil,
 			uq.withAddress != nil,
+			uq.withCart != nil,
+			uq.withOrder != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -485,6 +559,20 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadAddress(ctx, query, nodes,
 			func(n *User) { n.Edges.Address = []*Address{} },
 			func(n *User, e *Address) { n.Edges.Address = append(n.Edges.Address, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withCart; query != nil {
+		if err := uq.loadCart(ctx, query, nodes,
+			func(n *User) { n.Edges.Cart = []*Cart{} },
+			func(n *User, e *Cart) { n.Edges.Cart = append(n.Edges.Cart, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withOrder; query != nil {
+		if err := uq.loadOrder(ctx, query, nodes,
+			func(n *User) { n.Edges.Order = []*Order{} },
+			func(n *User, e *Order) { n.Edges.Order = append(n.Edges.Order, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -567,6 +655,66 @@ func (uq *UserQuery) loadAddress(ctx context.Context, query *AddressQuery, nodes
 	}
 	query.Where(predicate.Address(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.AddressColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "UserID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadCart(ctx context.Context, query *CartQuery, nodes []*User, init func(*User), assign func(*User, *Cart)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uint64]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(cart.FieldUserID)
+	}
+	query.Where(predicate.Cart(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.CartColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "UserID" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadOrder(ctx context.Context, query *OrderQuery, nodes []*User, init func(*User), assign func(*User, *Order)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uint64]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(order.FieldUserID)
+	}
+	query.Where(predicate.Order(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.OrderColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

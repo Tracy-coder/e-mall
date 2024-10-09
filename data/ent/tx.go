@@ -16,6 +16,8 @@ type Tx struct {
 	Address *AddressClient
 	// Carousel is the client for interacting with the Carousel builders.
 	Carousel *CarouselClient
+	// Cart is the client for interacting with the Cart builders.
+	Cart *CartClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Email is the client for interacting with the Email builders.
@@ -24,6 +26,8 @@ type Tx struct {
 	Favourite *FavouriteClient
 	// Notice is the client for interacting with the Notice builders.
 	Notice *NoticeClient
+	// Order is the client for interacting with the Order builders.
+	Order *OrderClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
 	// ProductImg is the client for interacting with the ProductImg builders.
@@ -163,10 +167,12 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
 	tx.Carousel = NewCarouselClient(tx.config)
+	tx.Cart = NewCartClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
 	tx.Email = NewEmailClient(tx.config)
 	tx.Favourite = NewFavouriteClient(tx.config)
 	tx.Notice = NewNoticeClient(tx.config)
+	tx.Order = NewOrderClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.ProductImg = NewProductImgClient(tx.config)
 	tx.User = NewUserClient(tx.config)

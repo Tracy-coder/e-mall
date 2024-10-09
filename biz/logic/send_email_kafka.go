@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/IBM/sarama"
+	"github.com/Tracy-coder/e-mall/configs"
+	"github.com/Tracy-coder/e-mall/pkg/kafka"
 )
 
 type sendEmailConsumerGroup struct{}
@@ -15,8 +17,8 @@ var SendEmailKafkaProducer sarama.SyncProducer
 var SendEmailKafkaConsumer sarama.ConsumerGroup
 
 func init() {
-	// SendEmailKafkaProducer = kafka.InitSynProducer(configs.Data().Kafka.Brokers)
-	// SendEmailKafkaConsumer = kafka.InitConsumerGroup(configs.Data().Kafka.Brokers, configs.Data().Kafka.GroupID)
+	SendEmailKafkaProducer = kafka.InitSynProducer(configs.Data().Kafka.Brokers)
+	SendEmailKafkaConsumer = kafka.InitConsumerGroup(configs.Data().Kafka.Brokers, configs.Data().Kafka.GroupID)
 }
 func (m sendEmailConsumerGroup) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (m sendEmailConsumerGroup) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }

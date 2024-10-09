@@ -12,6 +12,9 @@ type Address func(*sql.Selector)
 // Carousel is the predicate function for carousel builders.
 type Carousel func(*sql.Selector)
 
+// Cart is the predicate function for cart builders.
+type Cart func(*sql.Selector)
+
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 
@@ -23,6 +26,9 @@ type Favourite func(*sql.Selector)
 
 // Notice is the predicate function for notice builders.
 type Notice func(*sql.Selector)
+
+// Order is the predicate function for order builders.
+type Order func(*sql.Selector)
 
 // Product is the predicate function for product builders.
 type Product func(*sql.Selector)

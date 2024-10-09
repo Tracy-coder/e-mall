@@ -446,3 +446,141 @@ service address{
     option (api.delete) = "/api/v1/user/addresses";
   }
 }
+
+message CartInfo{
+  uint64 ID = 1;
+  uint64 UserID = 2;
+  uint64 ProductID = 3;
+  int32 Num = 4;
+  int32 MaxNum = 5;
+  bool Check = 6;
+  uint64 CreatedAt = 7;
+}
+
+message CreateCartReq{
+  uint64 productID = 1;
+}
+
+message CreateCartResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  CartInfo info = 3;
+}
+
+message ShowCartResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  repeated CartInfo info = 3;
+}
+
+message UpdateCartReq{
+  uint64 productID = 1;
+  int32 num = 2;
+}
+
+message DeleteCartReq{
+  uint64 productID = 1;
+}
+
+service cart{
+  rpc CreateCart(CreateCartReq)returns(CreateCartResp){
+    option (api.post) = "/api/v1/user/carts";
+  }
+  rpc ShowCart(Empty)returns(ShowCartResp){
+    option (api.get) = "/api/v1/user/carts";
+  }
+  rpc UpdateCart(UpdateCartReq)returns(base.BaseResp){
+    option (api.put) = "/api/v1/user/carts";
+  }
+  rpc DeleteCart(DeleteCartReq)returns(base.BaseResp){
+    option (api.delete) = "/api/v1/user/carts";
+  }
+}
+
+message CreateOrderReq{
+  uint64 productID = 1;
+  int32 num = 2;
+  uint64 addressID = 3;
+}
+
+message ListOrderReq{
+   int32 pageID = 1;
+  int32 pageSize = 2;
+  uint64 type = 3; 
+}
+
+message OrderInfo{
+  	uint64	ID = 1;
+		int32 OrderNum = 2;
+		uint64 CreatedAt = 3;
+		uint64 UpdatedAt = 4;
+		uint64 UserID = 5;
+		uint64 ProductID = 6;
+		int32  Num = 7;
+		string AddressName = 8;
+		string AddressPhone = 9;
+		string Address = 10;
+		uint64 Type = 11;
+    string Name = 12;
+    string ImgPath = 13;
+		int64 Price = 14;
+}
+
+message ListOrderResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  repeated OrderInfo info = 3;
+  int32 total = 4;
+}
+
+message ShowOrderReq{
+  uint64 orderNum = 1;
+}
+
+message ShowOrderResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+  OrderInfo info = 3;
+}
+
+
+message ShowCountResp{
+  base.ErrCode errCode = 1;
+  string errMsg = 2;
+	int32 favoriteTotal = 3;
+	int32 notPayTotal  = 4;
+	int32 payTotal = 5;
+}
+service order{
+  rpc CreateOrder(CreateOrderReq)returns(base.BaseResp){
+    option (api.post) = "/api/v1/user/orders";
+  }
+  rpc ListOrder(ListOrderReq)returns(ListOrderResp){
+    option (api.get) = "/api/v1/user/orders";
+  }
+  rpc ShowOrder(ShowOrderReq)returns(ShowOrderResp){
+    option (api.get) = "/api/v1/user/order";
+  }
+  rpc ShowCount(Empty)returns(ShowCountResp){
+    option (api.get) = "/api/v1/user/count";
+  }
+}
+
+message InitPayReq{
+  uint64 orderNum = 1;
+}
+
+
+
+
+service payment{
+  rpc InitPay(InitPayReq)returns(Empty){
+    option (api.get) = "/api/v1/user/payments";
+  }
+  rpc NotifyPay(Empty)returns(base.BaseResp){
+    option (api.post) = "/api/v1/alipay/notify";
+  }
+  rpc CallbackPay(Empty)returns(base.BaseResp){
+    option (api.get) = "/api/v1/alipay/callback";
+  }
+}

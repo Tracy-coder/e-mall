@@ -7,10 +7,12 @@ import (
 
 	"github.com/Tracy-coder/e-mall/data/ent/address"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/cart"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/favourite"
 	"github.com/Tracy-coder/e-mall/data/ent/notice"
+	"github.com/Tracy-coder/e-mall/data/ent/order"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 	"github.com/Tracy-coder/e-mall/data/ent/schema"
@@ -51,6 +53,21 @@ func init() {
 	carousel.DefaultUpdatedAt = carouselDescUpdatedAt.Default.(func() time.Time)
 	// carousel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	carousel.UpdateDefaultUpdatedAt = carouselDescUpdatedAt.UpdateDefault.(func() time.Time)
+	cartMixin := schema.Cart{}.Mixin()
+	cartMixinFields0 := cartMixin[0].Fields()
+	_ = cartMixinFields0
+	cartFields := schema.Cart{}.Fields()
+	_ = cartFields
+	// cartDescCreatedAt is the schema descriptor for created_at field.
+	cartDescCreatedAt := cartMixinFields0[1].Descriptor()
+	// cart.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cart.DefaultCreatedAt = cartDescCreatedAt.Default.(func() time.Time)
+	// cartDescUpdatedAt is the schema descriptor for updated_at field.
+	cartDescUpdatedAt := cartMixinFields0[2].Descriptor()
+	// cart.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cart.DefaultUpdatedAt = cartDescUpdatedAt.Default.(func() time.Time)
+	// cart.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cart.UpdateDefaultUpdatedAt = cartDescUpdatedAt.UpdateDefault.(func() time.Time)
 	categoryFields := schema.Category{}.Fields()
 	_ = categoryFields
 	// categoryDescCreatedAt is the schema descriptor for created_at field.
@@ -118,6 +135,21 @@ func init() {
 	notice.DefaultUpdatedAt = noticeDescUpdatedAt.Default.(func() time.Time)
 	// notice.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	notice.UpdateDefaultUpdatedAt = noticeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	orderMixin := schema.Order{}.Mixin()
+	orderMixinFields0 := orderMixin[0].Fields()
+	_ = orderMixinFields0
+	orderFields := schema.Order{}.Fields()
+	_ = orderFields
+	// orderDescCreatedAt is the schema descriptor for created_at field.
+	orderDescCreatedAt := orderMixinFields0[1].Descriptor()
+	// order.DefaultCreatedAt holds the default value on creation for the created_at field.
+	order.DefaultCreatedAt = orderDescCreatedAt.Default.(func() time.Time)
+	// orderDescUpdatedAt is the schema descriptor for updated_at field.
+	orderDescUpdatedAt := orderMixinFields0[2].Descriptor()
+	// order.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	order.DefaultUpdatedAt = orderDescUpdatedAt.Default.(func() time.Time)
+	// order.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	order.UpdateDefaultUpdatedAt = orderDescUpdatedAt.UpdateDefault.(func() time.Time)
 	productMixin := schema.Product{}.Mixin()
 	productMixinFields0 := productMixin[0].Fields()
 	_ = productMixinFields0

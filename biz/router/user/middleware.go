@@ -203,3 +203,63 @@ func _updateaddressMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _deletecartMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showcartMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createcartMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _updatecartMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showorderMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _listorderMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _createorderMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _showcountMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _alipayMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _callbackpayMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _notifypayMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _initpayMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

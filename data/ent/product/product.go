@@ -38,6 +38,10 @@ const (
 	EdgeProductimgs = "productimgs"
 	// EdgeFavourite holds the string denoting the favourite edge name in mutations.
 	EdgeFavourite = "favourite"
+	// EdgeCart holds the string denoting the cart edge name in mutations.
+	EdgeCart = "cart"
+	// EdgeOrder holds the string denoting the order edge name in mutations.
+	EdgeOrder = "order"
 	// Table holds the table name of the product in the database.
 	Table = "products"
 	// CarouselsTable is the table that holds the carousels relation/edge.
@@ -68,6 +72,20 @@ const (
 	FavouriteInverseTable = "favourites"
 	// FavouriteColumn is the table column denoting the favourite relation/edge.
 	FavouriteColumn = "product_id"
+	// CartTable is the table that holds the cart relation/edge.
+	CartTable = "carts"
+	// CartInverseTable is the table name for the Cart entity.
+	// It exists in this package in order to avoid circular dependency with the "cart" package.
+	CartInverseTable = "carts"
+	// CartColumn is the table column denoting the cart relation/edge.
+	CartColumn = "product_id"
+	// OrderTable is the table that holds the order relation/edge.
+	OrderTable = "orders"
+	// OrderInverseTable is the table name for the Order entity.
+	// It exists in this package in order to avoid circular dependency with the "order" package.
+	OrderInverseTable = "orders"
+	// OrderColumn is the table column denoting the order relation/edge.
+	OrderColumn = "product_id"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -198,6 +216,34 @@ func ByFavourite(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFavouriteStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCartCount orders the results by cart count.
+func ByCartCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCartStep(), opts...)
+	}
+}
+
+// ByCart orders the results by cart terms.
+func ByCart(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCartStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderCount orders the results by order count.
+func ByOrderCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderStep(), opts...)
+	}
+}
+
+// ByOrder orders the results by order terms.
+func ByOrder(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newCarouselsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -224,5 +270,19 @@ func newFavouriteStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FavouriteInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FavouriteTable, FavouriteColumn),
+	)
+}
+func newCartStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CartInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CartTable, CartColumn),
+	)
+}
+func newOrderStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderTable, OrderColumn),
 	)
 }

@@ -32,6 +32,8 @@ func (Product) Edges() []ent.Edge {
 		edge.From("category", Category.Type).Ref("product").Field("categoryID").Unique(),
 		edge.To("productimgs", ProductImg.Type),
 		edge.To("favourite", Favourite.Type),
+		edge.To("cart", Cart.Type),
+		edge.To("order", Order.Type),
 	}
 }
 

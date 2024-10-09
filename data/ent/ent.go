@@ -14,10 +14,12 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/Tracy-coder/e-mall/data/ent/address"
 	"github.com/Tracy-coder/e-mall/data/ent/carousel"
+	"github.com/Tracy-coder/e-mall/data/ent/cart"
 	"github.com/Tracy-coder/e-mall/data/ent/category"
 	"github.com/Tracy-coder/e-mall/data/ent/email"
 	"github.com/Tracy-coder/e-mall/data/ent/favourite"
 	"github.com/Tracy-coder/e-mall/data/ent/notice"
+	"github.com/Tracy-coder/e-mall/data/ent/order"
 	"github.com/Tracy-coder/e-mall/data/ent/product"
 	"github.com/Tracy-coder/e-mall/data/ent/productimg"
 	"github.com/Tracy-coder/e-mall/data/ent/user"
@@ -83,10 +85,12 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			address.Table:    address.ValidColumn,
 			carousel.Table:   carousel.ValidColumn,
+			cart.Table:       cart.ValidColumn,
 			category.Table:   category.ValidColumn,
 			email.Table:      email.ValidColumn,
 			favourite.Table:  favourite.ValidColumn,
 			notice.Table:     notice.ValidColumn,
+			order.Table:      order.ValidColumn,
 			product.Table:    product.ValidColumn,
 			productimg.Table: productimg.ValidColumn,
 			user.Table:       user.ValidColumn,

@@ -54,6 +54,37 @@ var (
 			},
 		},
 	}
+	// CartsColumns holds the columns for the "carts" table.
+	CartsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "num", Type: field.TypeInt32},
+		{Name: "max_num", Type: field.TypeInt32},
+		{Name: "check", Type: field.TypeBool},
+		{Name: "product_id", Type: field.TypeUint64, Nullable: true},
+		{Name: "user_id", Type: field.TypeUint64, Nullable: true},
+	}
+	// CartsTable holds the schema information for the "carts" table.
+	CartsTable = &schema.Table{
+		Name:       "carts",
+		Columns:    CartsColumns,
+		PrimaryKey: []*schema.Column{CartsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "carts_products_cart",
+				Columns:    []*schema.Column{CartsColumns[6]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "carts_users_cart",
+				Columns:    []*schema.Column{CartsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
@@ -134,6 +165,41 @@ var (
 		Columns:    NoticesColumns,
 		PrimaryKey: []*schema.Column{NoticesColumns[0]},
 	}
+	// OrdersColumns holds the columns for the "orders" table.
+	OrdersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "num", Type: field.TypeInt32},
+		{Name: "order_num", Type: field.TypeUint64},
+		{Name: "address_name", Type: field.TypeString},
+		{Name: "address_phone", Type: field.TypeString},
+		{Name: "address", Type: field.TypeString},
+		{Name: "type", Type: field.TypeUint64},
+		{Name: "price", Type: field.TypeInt64},
+		{Name: "product_id", Type: field.TypeUint64, Nullable: true},
+		{Name: "user_id", Type: field.TypeUint64, Nullable: true},
+	}
+	// OrdersTable holds the schema information for the "orders" table.
+	OrdersTable = &schema.Table{
+		Name:       "orders",
+		Columns:    OrdersColumns,
+		PrimaryKey: []*schema.Column{OrdersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "orders_products_order",
+				Columns:    []*schema.Column{OrdersColumns[10]},
+				RefColumns: []*schema.Column{ProductsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "orders_users_order",
+				Columns:    []*schema.Column{OrdersColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint64, Increment: true},
@@ -205,10 +271,12 @@ var (
 	Tables = []*schema.Table{
 		AddressesTable,
 		CarouselsTable,
+		CartsTable,
 		CategoriesTable,
 		EmailsTable,
 		FavouritesTable,
 		NoticesTable,
+		OrdersTable,
 		ProductsTable,
 		ProductImgsTable,
 		UsersTable,
@@ -218,9 +286,13 @@ var (
 func init() {
 	AddressesTable.ForeignKeys[0].RefTable = UsersTable
 	CarouselsTable.ForeignKeys[0].RefTable = ProductsTable
+	CartsTable.ForeignKeys[0].RefTable = ProductsTable
+	CartsTable.ForeignKeys[1].RefTable = UsersTable
 	EmailsTable.ForeignKeys[0].RefTable = UsersTable
 	FavouritesTable.ForeignKeys[0].RefTable = ProductsTable
 	FavouritesTable.ForeignKeys[1].RefTable = UsersTable
+	OrdersTable.ForeignKeys[0].RefTable = ProductsTable
+	OrdersTable.ForeignKeys[1].RefTable = UsersTable
 	ProductsTable.ForeignKeys[0].RefTable = CategoriesTable
 	ProductImgsTable.ForeignKeys[0].RefTable = ProductsTable
 }

@@ -33,6 +33,11 @@ func Register(r *server.Hertz) {
 			_v1.POST("/register", append(_registerMw(), user.Register)...)
 			_v1.GET("/verify_email", append(_verifyemailMw(), user.VerifyEmail)...)
 			{
+				_alipay := _v1.Group("/alipay", _alipayMw()...)
+				_alipay.GET("/callback", append(_callbackpayMw(), user.CallbackPay)...)
+				_alipay.POST("/notify", append(_notifypayMw(), user.NotifyPay)...)
+			}
+			{
 				_github := _v1.Group("/github", _githubMw()...)
 				_github.GET("/login", append(_gtloginMw(), user.GTLogin)...)
 				_login := _github.Group("/login", _loginMw()...)
@@ -44,10 +49,19 @@ func Register(r *server.Hertz) {
 				_user.GET("/addresses", append(_showaddressMw(), user.ShowAddress)...)
 				_user.POST("/addresses", append(_createaddressMw(), user.CreateAddress)...)
 				_user.PUT("/addresses", append(_updateaddressMw(), user.UpdateAddress)...)
+				_user.DELETE("/carts", append(_deletecartMw(), user.DeleteCart)...)
+				_user.GET("/carts", append(_showcartMw(), user.ShowCart)...)
+				_user.POST("/carts", append(_createcartMw(), user.CreateCart)...)
+				_user.PUT("/carts", append(_updatecartMw(), user.UpdateCart)...)
+				_user.GET("/count", append(_showcountMw(), user.ShowCount)...)
 				_user.DELETE("/favourites", append(_deletefavouriteMw(), user.DeleteFavourite)...)
 				_user.GET("/favourites", append(_showfavouritesMw(), user.ShowFavourites)...)
 				_user.POST("/favourites", append(_createfavouriteMw(), user.CreateFavourite)...)
 				_user.GET("/info", append(_userinfoMw(), user.UserInfo)...)
+				_user.GET("/order", append(_showorderMw(), user.ShowOrder)...)
+				_user.GET("/orders", append(_listorderMw(), user.ListOrder)...)
+				_user.POST("/orders", append(_createorderMw(), user.CreateOrder)...)
+				_user.GET("/payments", append(_initpayMw(), user.InitPay)...)
 				_user.POST("/upload_avatar", append(_uploadavatarMw(), user.UploadAvatar)...)
 				_user.POST("/valid_email", append(_validemailMw(), user.ValidEmail)...)
 			}

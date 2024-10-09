@@ -35,7 +35,15 @@ enum ErrCode {
   ShowAddressError = 28;
   DeleteAddressError = 29;
   UpdateAddressError = 30;
-
+  CreateCartError = 31;
+  ShowCartError = 32;
+  DeleteCartError = 33;
+  UpdateCartError = 34;
+  CreateOrderError = 35;
+  ShowOrderError = 36;
+  ListOrderError = 37;
+  ShowCountError = 38;
+  InitPayError = 39;
 }
 
 

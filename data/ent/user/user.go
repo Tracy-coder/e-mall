@@ -38,6 +38,10 @@ const (
 	EdgeFavourite = "favourite"
 	// EdgeAddress holds the string denoting the address edge name in mutations.
 	EdgeAddress = "address"
+	// EdgeCart holds the string denoting the cart edge name in mutations.
+	EdgeCart = "cart"
+	// EdgeOrder holds the string denoting the order edge name in mutations.
+	EdgeOrder = "order"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// EmailsTable is the table that holds the emails relation/edge.
@@ -61,6 +65,20 @@ const (
 	AddressInverseTable = "addresses"
 	// AddressColumn is the table column denoting the address relation/edge.
 	AddressColumn = "user_id"
+	// CartTable is the table that holds the cart relation/edge.
+	CartTable = "carts"
+	// CartInverseTable is the table name for the Cart entity.
+	// It exists in this package in order to avoid circular dependency with the "cart" package.
+	CartInverseTable = "carts"
+	// CartColumn is the table column denoting the cart relation/edge.
+	CartColumn = "user_id"
+	// OrderTable is the table that holds the order relation/edge.
+	OrderTable = "orders"
+	// OrderInverseTable is the table name for the Order entity.
+	// It exists in this package in order to avoid circular dependency with the "order" package.
+	OrderInverseTable = "orders"
+	// OrderColumn is the table column denoting the order relation/edge.
+	OrderColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -194,6 +212,34 @@ func ByAddress(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAddressStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCartCount orders the results by cart count.
+func ByCartCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCartStep(), opts...)
+	}
+}
+
+// ByCart orders the results by cart terms.
+func ByCart(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCartStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOrderCount orders the results by order count.
+func ByOrderCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOrderStep(), opts...)
+	}
+}
+
+// ByOrder orders the results by order terms.
+func ByOrder(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newEmailsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -213,5 +259,19 @@ func newAddressStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AddressInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AddressTable, AddressColumn),
+	)
+}
+func newCartStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CartInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CartTable, CartColumn),
+	)
+}
+func newOrderStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OrderInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OrderTable, OrderColumn),
 	)
 }
